@@ -17,7 +17,7 @@ class AcademicYear(models.Model):
 class Term(models.Model):
     class TermName(models.TextChoices):
         TERM_1 = "TERM_1", "Term 1"
-        TERM_2 = "TERM_2", "Term 2"
+        TERM_2 = "TERM_2", "Term 2"              # to avoid errors(spelling)
         TERM_3 = "TERM_3", "Term 3"
 
     academic_year = models.ForeignKey(
