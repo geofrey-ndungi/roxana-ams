@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AcademicYear, Term ,SchoolClass, Subject
+from .models import AcademicYear, Term ,SchoolClass, Subject, Enrollment
 
 
 class TermInline(admin.TabularInline):
@@ -26,3 +26,8 @@ class SchoolClassAdmin(admin.ModelAdmin):
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
     list_display = ["name", "code"]
+
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ["student", "school_class", "academic_year", "date_enrolled"]
+    list_filter = ["academic_year", "school_class"]
