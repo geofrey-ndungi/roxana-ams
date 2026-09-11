@@ -1,4 +1,8 @@
 from django.db import models
+from django.conf import settings
+
+
+
 
 # Create your models here.
 class AcademicYear(models.Model):
@@ -57,3 +61,29 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
+
+class Enrollment(models.Model):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,   # instead of importing User directly — this is the correct way to reference your custom user model from a different app.
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+        limit_choices_to={"role": "STUDENT"}, #dmin dropdown for picking a student, only show users where role = STUDENT
+    )
+    school_class = models.ForeignKey(
+        SchoolClass,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+    )
+    date_enrolled = models.DateField(auto_now_add=True)  # automatically records today's date the first time this row is created. You don't set it manually
+
+    class Meta:
+        unique_together = ["student", "academic_year"] #enforces "one enrollment per student per year." If you try to enroll the same student twice in the same year, the database itself will reject it
+        ordering = ["academic_year", "school_class"]
+
+    def __str__(self):
+        return f"{self.student.username} - {self.school_class} ({self.academic_year})"
