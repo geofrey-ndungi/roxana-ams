@@ -37,3 +37,23 @@ class Term(models.Model):
     def __str__(self):
         return f"{self.get_name_display()} - {self.academic_year.year}"
 
+class SchoolClass(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # e.g. "Grade 8"
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Subject(models.Model):
+    name = models.CharField(max_length=100, unique=True)  # e.g. "Mathematics"
+    code = models.CharField(max_length=20, unique=True, blank=True, null=True)  # e.g. "MATH101"
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
