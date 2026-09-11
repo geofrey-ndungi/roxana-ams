@@ -17,7 +17,7 @@ class AcademicYear(models.Model):
 class Term(models.Model):
     class TermName(models.TextChoices):
         TERM_1 = "TERM_1", "Term 1"
-        TERM_2 = "TERM_2", "Term 2"
+        TERM_2 = "TERM_2", "Term 2"              # to avoid errors(spelling)
         TERM_3 = "TERM_3", "Term 3"
 
     academic_year = models.ForeignKey(
@@ -36,4 +36,24 @@ class Term(models.Model):
 
     def __str__(self):
         return f"{self.get_name_display()} - {self.academic_year.year}"
+
+class SchoolClass(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # e.g. "Grade 8"
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Subject(models.Model):
+    name = models.CharField(max_length=100, unique=True)  # e.g. "Mathematics"
+    code = models.CharField(max_length=20, unique=True, blank=True, null=True)  # e.g. "MATH101"
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
