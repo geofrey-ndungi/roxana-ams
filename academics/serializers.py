@@ -8,18 +8,26 @@ class AcademicYearSerializer(serializers.ModelSerializer):  # Translates django 
 
 
 class TermSerializer(serializers.ModelSerializer):
+   class Meta:                     #this is required to tell the Django Rest Framework where to fing the fields/ models
     model = Term
     fields = ["name", "start_date", "end_date", "is_active"]
 
 class SchoolClassSerializer(serializers.ModelSerializer):
+   class Meta:
+
     model = SchoolClass
     fields = ["name"]
 
 class SubjectSerializer(serializers.ModelSerializer):
+   class Meta:
+
     model = Subject
     fields = ["name", "code"]
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
+
+   class Meta:
+
     model = Enrollment
     fields = ["student", "school_class", "academic_year", "date_enrolled"]
