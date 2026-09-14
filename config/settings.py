@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+
     'rest_framework', #added this coz ill use it at some point
     'accounts', # added the accounts app
     'academics',
@@ -76,6 +78,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (  #tells Django Rest Framework how to figure out who's making a request and if the request has a valid JWT token
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (            # means every API endpoint now requires a logged-in user by default, unless we explicitly say otherwise on a specific view.
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
 
 
 # Database
