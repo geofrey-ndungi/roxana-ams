@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 
     'rest_framework', #added this coz ill use it at some point
     'accounts', # added the accounts app
-    'academics',
+    'academics', # academics app
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
