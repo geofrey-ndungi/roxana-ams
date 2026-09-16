@@ -13,6 +13,15 @@ function Login() {
     try {
       const response = await api.post("/token/", { username, password });
       console.log("Login Success: ", response.data);
+
+
+      // Saving the tokens
+      localStorage.setItem("access token", response.data.access);  //saves the access token under the name "access_token"
+      localStorage.setItem("refresh token", response.data.refresh); // saves the refresh token under the name "refresh token"
+
+
+
+
     } catch (err) {
       setError("Invalid username or password");
       console.error(err);
