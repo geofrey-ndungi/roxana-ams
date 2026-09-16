@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'rest_framework', #added this coz ill use it at some point
     'accounts', # added the accounts app
     'academics', # academics app
+
+    'corsheaders',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -52,6 +54,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,6 +62,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [    # this is the whitelist — only requests coming from your React dev server (port 5173) are allowed to talk to the Django API
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
+
+
+
 
 ROOT_URLCONF = 'config.urls'
 
