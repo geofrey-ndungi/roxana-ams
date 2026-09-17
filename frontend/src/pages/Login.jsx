@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../api/axios";
 
-function Login() {
+function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,6 +18,7 @@ function Login() {
       // Saving the tokens
       localStorage.setItem("access token", response.data.access);  //saves the access token under the name "access_token"
       localStorage.setItem("refresh token", response.data.refresh); // saves the refresh token under the name "refresh token"
+      onLoginSuccess();
 
 
 
