@@ -1,0 +1,37 @@
+import { useState, useEffect } from "react";
+import api from "../api/axios";
+
+function Subjects() {
+  const [subjects, setSubjects] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const response = await api.get("/subjects/");
+        setSubjects(response.data);
+      } catch (err) {
+        setError("Failed to load subjects. Are you logged in?");
+        console.error(err);
+      }
+    };
+
+    fetchSubjects();
+  }, []);
+
+  return (
+    <div>
+      <h2>Subjects</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <ul>
+        {subjects.map((subject) => (
+          <li key={subject.id}>
+            {subject.name} ({subject.code})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default Subjects;
