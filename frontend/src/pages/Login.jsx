@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../api/axios";
+import "./Login.css"
 
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
@@ -25,35 +26,47 @@ function Login({ onLoginSuccess }) {
 
     } catch (err) {
       setError("Invalid username or password");
+      setUsername("");
+      setPassword("");
       console.error(err);
     }
   };
 
+  
   return (
-    <div>
-      <h2>Login</h2>
+  <div className="login-container">
+    <div className="login-box">
+
+      <h1>Roxana School Academic Management System</h1>
+
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username</label>
+        <div className="input-group">
           <input
             type="text"
+            placeholder=" "
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
+          <label>Username</label>
         </div>
-        <div>
-          <label>Password</label>
+
+        <div className="input-group">
           <input
             type="password"
+            placeholder=" "
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <label>Password</label>
         </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+
+        {error && <p className="login-error">{error}</p>}
+
         <button type="submit">Log In</button>
       </form>
     </div>
-  );
+  </div>
+);
 }
 
 export default Login;
