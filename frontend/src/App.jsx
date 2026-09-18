@@ -3,26 +3,23 @@ import Login from "./pages/Login";
 import Subjects from "./pages/Subjects";
 
 function App() {
-  // On first load, check if a token already exists in localStorage
-  // (e.g. user refreshed the page after already logging in).
-  // `!!` converts the result to a true/false boolean:
-  // getItem() returns either a string (token exists) or null (it doesn't).
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("access_token")
   );
 
+  // Clears both tokens from storage and flips the app back to
+  // the logged-out state, so App re-renders and shows Login again.
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setIsLoggedIn(false);
+  };
+
   return (
     <div>
-      {/* Ternary = shorthand if/else for JSX.
-          If isLoggedIn is true, show the Subjects page.
-          Otherwise, show the Login page. */}
       {isLoggedIn ? (
-        <Subjects />
+        <Subjects onLogout={handleLogout} />
       ) : (
-        // We pass a function into Login as a "prop" (onLoginSuccess).
-        // This lets the Login component notify App when login worked,
-        // so App can flip isLoggedIn to true and switch which page shows —
-        // without Login needing to know anything about App's internals.
         <Login onLoginSuccess={() => setIsLoggedIn(true)} />
       )}
     </div>
