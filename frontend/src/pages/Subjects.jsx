@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 
-function Subjects() {
+function Subjects({onLogout}) {
   const [subjects, setSubjects] = useState([]);
   const [error, setError] = useState("");
 
@@ -21,16 +21,19 @@ function Subjects() {
 
   return (
     <div>
-      <h2>Subjects</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <h2>Subjects</h2>
+    <button onClick={onLogout}>Log Out</button>
+    {error && <p style={{ color: "red" }}>{error}</p>}
       <ul>
         {subjects.map((subject) => (
           <li key={subject.id}>
-            {subject.name} ({subject.code})
+
+            {subject.name} - {subject.code}
+            
           </li>
         ))}
       </ul>
-    </div>
+  </div>
   );
 }
 
