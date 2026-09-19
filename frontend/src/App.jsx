@@ -10,7 +10,6 @@ function App() {
 
   console.log("App rendering — isLoggedIn:", isLoggedIn, "sessionExpired:", sessionExpired);
 
-  // ...rest stays the same
 
   useEffect(() => {
   const handleSessionExpired = () => {

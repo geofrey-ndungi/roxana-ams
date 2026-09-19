@@ -109,11 +109,14 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
 
     '''
+    
 15 minutes for access tokens is a reasonable middle ground — not so 
 short that refreshes happen constantly, not so long that a stolen token stays dangerous for ages
 . A 1-day refresh token means users generally won't need to log in again 
 unless they're inactive for a full day — 
-reasonable for a school system used daily during term time.'''
+reasonable for a school system used daily during term time.
+
+'''
 
 
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),   
