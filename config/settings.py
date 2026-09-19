@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 from decouple import config   
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -101,6 +102,25 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (            # means every API endpoint now requires a logged-in user by default, unless we explicitly say otherwise on a specific view.
         'rest_framework.permissions.IsAuthenticated',
     ),
+}
+
+
+
+SIMPLE_JWT = {
+
+    '''
+    
+15 minutes for access tokens is a reasonable middle ground — not so 
+short that refreshes happen constantly, not so long that a stolen token stays dangerous for ages
+. A 1-day refresh token means users generally won't need to log in again 
+unless they're inactive for a full day — 
+reasonable for a school system used daily during term time.
+
+'''
+
+
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),   
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 
