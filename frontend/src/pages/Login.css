@@ -1,0 +1,130 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #f4f4f4, #e2e2e2);
+}
+
+.login-box {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  width: 415px;
+  height: 424px;
+}
+
+.login-logo {
+  display: block;
+  width: 70px;
+  margin: 0 auto 1rem auto;
+}
+
+.login-box h1 {
+  margin-bottom: 1.5rem;
+  text-align: left;
+  color: #c1622a; /* rust/orange from the logo */
+  font-size: 1.875rem;
+  line-height: 1.3;
+  font-size: 35px;
+}
+
+.login-box div {
+  margin-bottom: 1rem;
+}
+
+.login-box label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  color: #0a1f5c; /* navy from the logo */
+  font-weight: 500;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d5d5d5;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  height: 45px;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #0a1f5c;
+  box-shadow: 0 0 0 2px rgba(10, 31, 92, 0.15);
+}
+
+.login-box button {
+  width: 100%;
+  padding: 0.7rem;
+  background-color: #0a1f5c; /* navy */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  height: 50px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.login-box button:hover {
+  background-color: #071642;
+}
+
+.login-error {
+  background-color: #fbe4e4;
+  color: #a33;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.9rem 0.75rem 0.4rem 0.75rem; /* extra top padding so text sits below the label */
+  border: 1px solid #d5d5d5;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  height: 45px;
+  background: transparent;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #0a1f5c;
+  box-shadow: 0 0 0 2px rgba(10, 31, 92, 0.15);
+}
+
+.input-group label {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.95rem;
+  color: #888;
+  pointer-events: none; /* clicks pass through to the input underneath */
+  transition: all 0.15s ease-out;
+  background: white; /* covers the input border when floated, looks "cut into" the border */
+  padding: 0 4px;
+}
+
+/* Float the label up when the input is focused, OR already has a value */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: 0;
+  transform: translateY(-50%) scale(0.8);
+  color: #0a1f5c;
+}
