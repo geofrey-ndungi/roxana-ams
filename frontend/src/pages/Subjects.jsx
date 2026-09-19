@@ -1,39 +1,38 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 
-function Subjects({onLogout}) {
+function Subjects({ onLogout }) {
   const [subjects, setSubjects] = useState([]);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      try {
-        const response = await api.get("/subjects/");
-        setSubjects(response.data);
-      } catch (err) {
-        setError("Failed to load subjects. Are you logged in?");
-        console.error(err);
-      }
-    };
+  const fetchSubjects = async () => {
+    try {
+      const response = await api.get("/subjects/");
+      setSubjects(response.data);
+    } catch (err) {
+      setError("Failed to load subjects. Are you logged in?");
+      console.error(err);
+    }
+  };
 
+  useEffect(() => {
     fetchSubjects();
   }, []);
 
   return (
     <div>
-    <h2>Subjects</h2>
-    <button onClick={onLogout}>Log Out</button>
-    {error && <p style={{ color: "red" }}>{error}</p>}
+      <h2>Subjects</h2>
+      <button onClick={onLogout}>Log Out</button>
+      <button onClick={fetchSubjects}>Refresh Subjects</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <ul>
         {subjects.map((subject) => (
           <li key={subject.id}>
-
-            {subject.name} - {subject.code}
-            
+            {subject.name} ({subject.code})
           </li>
         ))}
       </ul>
-  </div>
+    </div>
   );
 }
 

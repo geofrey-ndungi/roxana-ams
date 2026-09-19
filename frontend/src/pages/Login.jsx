@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../api/axios";
 import "./Login.css"
 
-function Login({ onLoginSuccess }) {
+function Login({ onLoginSuccess , sessionExpired }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -38,6 +38,10 @@ function Login({ onLoginSuccess }) {
     <div className="login-box">
 
       <h1>Roxana School Academic Management System</h1>
+
+      {sessionExpired && (
+  <p className="login-error">Your session has timed out. Please log in again.</p>
+     )}
 
       <form onSubmit={handleSubmit}>
         <div className="input-group">
