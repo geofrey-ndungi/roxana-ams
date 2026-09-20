@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import "./Login.css";
+import Header from "../components/Header";
+
 
 function Login() {
   const navigate = useNavigate();
@@ -30,8 +32,11 @@ function Login() {
 };
 
   
-  return (
-  <div className="login-container">
+ return (
+    <>
+    <Header/>
+    
+   <div className="login-container">
     <div className="login-box">
 
       <h1>Roxana School Academic Management System</h1>
@@ -68,6 +73,7 @@ function Login() {
       </form>
     </div>
   </div>
+        </>
 );
 }
 

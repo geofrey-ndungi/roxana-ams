@@ -2,17 +2,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 2.5rem, 2.5rem,2.5rem, 2.5rem;
   min-height: 100vh;
   background: linear-gradient(to bottom right, #f4f4f4, #e2e2e2);
 }
 
+
+
 .login-box {
   background: white;
+  margin-top: -280px;
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  width: 415px;
-  height: 424px;
+  width: 500px;
+  height: 502px;
 }
 
 .login-logo {

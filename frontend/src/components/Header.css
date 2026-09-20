@@ -1,0 +1,58 @@
+.top-bar {
+  background-color: #0a1f5c; /* navy */
+  color: white;
+  font-size: 1.2rem;
+  padding: 1.0rem 2rem;
+  display: flex;
+  justify-content: flex-start;
+  gap: 2rem;
+
+  align-items: center;
+}
+
+
+.top-bar span {
+  font-weight: 400;
+}
+
+.main-bar {
+  background-color: white;
+  padding: 1.15rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-logo {
+  height: 70px;
+  width: auto;
+}
+
+.brand-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0a1f5c; /* navy */
+}
+
+nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+nav a {
+  text-decoration: none;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+nav a:hover {
+  color: #c1622a; /* rust, matches logo accent */
+}
