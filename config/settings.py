@@ -66,7 +66,10 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [    # this is the whitelist — only requests coming from your React dev server (port 5173) are allowed to talk to the Django API
     "http://localhost:5173",
+    "http://localhost:5174",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+
 ]
 
 
