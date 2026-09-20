@@ -1,36 +1,33 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
-import "./Login.css"
+import "./Login.css";
 
-function Login({ onLoginSuccess , sessionExpired }) {
+function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const sessionExpired = location.state?.sessionExpired || false;
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    try {
-      const response = await api.post("/token/", { username, password });
-      console.log("Login Success: ", response.data);
-
-
-      // Saving the tokens
-      localStorage.setItem("access_token", response.data.access);  //saves the access token under the name "access_token"
-      localStorage.setItem("refresh_token", response.data.refresh); // saves the refresh token under the name "refresh token"
-      onLoginSuccess();
-
-
-
-
-    } catch (err) {
-      setError("Invalid username or password");
-      setUsername("");
-      setPassword("");
-      console.error(err);
-    }
-  };
+  try {
+    const response = await api.post("/token/", { username, password });
+    localStorage.setItem("access_token", response.data.access);
+    localStorage.setItem("refresh_token", response.data.refresh);
+    navigate("/subjects");
+  } catch (err) {
+    setError("Invalid username or password");
+    setUsername("");
+    setPassword("");
+    console.error(err);
+  }
+};
 
   
   return (
@@ -40,8 +37,9 @@ function Login({ onLoginSuccess , sessionExpired }) {
       <h1>Roxana School Academic Management System</h1>
 
       {sessionExpired && (
-  <p className="login-error">Your session has timed out. Please log in again.</p>
-     )}
+       <p className="login-error">Your session has timed out. Please log in again.</p>
+       )}
+     
 
       <form onSubmit={handleSubmit}>
         <div className="input-group">
