@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import Header from "../components/Header";
 
 function Subjects({ onLogout }) {
   const [subjects, setSubjects] = useState([]);
@@ -20,6 +21,9 @@ function Subjects({ onLogout }) {
   }, []);
 
   return (
+    <>
+
+    <Header/>
     <div>
       <h2>Subjects</h2>
       <button onClick={onLogout}>Log Out</button>
@@ -33,6 +37,7 @@ function Subjects({ onLogout }) {
         ))}
       </ul>
     </div>
+    </>
   );
 }
 
