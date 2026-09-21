@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import logo from "../assets/logo2.jpg";
+import logo from "../assets/logo3.jpg";
 import "./Header.css";
 
 function Header() {
