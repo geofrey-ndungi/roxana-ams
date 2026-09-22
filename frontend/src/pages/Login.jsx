@@ -34,7 +34,7 @@ function Login() {
   
  return (
     <>
-    <Header/>
+    <Header isLoggedIn={false} />
     
    <div className="login-container">
     <div className="login-box">

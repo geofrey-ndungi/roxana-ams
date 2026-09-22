@@ -1,9 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
 import logo from "../assets/logo3.jpg";
 import "./Header.css";
 
-function Header() {
+function Header({ isLoggedIn, onLogout }) {
   return (
     <header>
       <div className="top-bar">
@@ -11,7 +12,7 @@ function Header() {
           <FontAwesomeIcon icon={faPhone} /> Call us: (+254) 700-000-000
         </span>
         <span>
-          <FontAwesomeIcon icon={faEnvelope} /> Email: info@roxanaschool.edu
+          <FontAwesomeIcon icon={faEnvelope} /> Email: info@roxanaschool.ac.ke
         </span>
       </div>
 
@@ -24,9 +25,14 @@ function Header() {
         </div>
 
         <nav>
-          <a href="/">Home</a>
-          <a href="/subjects">Subjects</a>
-          <a href="/help">Help</a>
+          <Link to="/">Home</Link>
+          <Link to="/subjects">Subjects</Link>
+          <Link to="/help">Help</Link>
+          {isLoggedIn && (
+            <button className="logout-btn" onClick={onLogout}>
+              Log Out
+            </button>
+          )}
         </nav>
       </div>
     </header>

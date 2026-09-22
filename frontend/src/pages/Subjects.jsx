@@ -21,12 +21,10 @@ function Subjects({ onLogout }) {
   }, []);
 
   return (
-    <>
-
-    <Header/>
+  <>
+    <Header isLoggedIn={true} onLogout={onLogout} />
     <div>
       <h2>Subjects</h2>
-      <button onClick={onLogout}>Log Out</button>
       <button onClick={fetchSubjects}>Refresh Subjects</button>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <ul>
@@ -37,8 +35,8 @@ function Subjects({ onLogout }) {
         ))}
       </ul>
     </div>
-    </>
-  );
+  </>
+);
 }
 
 export default Subjects;
