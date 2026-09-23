@@ -43,6 +43,14 @@ class Term(models.Model):
 
 class SchoolClass(models.Model):
     name = models.CharField(max_length=50, unique=True)  # e.g. "Grade 8"
+    class_teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="classes_taught",
+        limit_choices_to={"role": "TEACHER"},
+    )
 
     class Meta:
         ordering = ["name"]
@@ -87,3 +95,36 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.school_class} ({self.academic_year})"
+
+
+
+class Attendance(models.Model):
+    class Status(models.TextChoices):
+        PRESENT = "PRESENT", "Present"
+        ABSENT = "ABSENT", "Absent"
+        LATE = "LATE", "Late"
+        EXCUSED = "EXCUSED", "Excused"
+
+    enrollment = models.ForeignKey(
+        Enrollment,
+        on_delete=models.CASCADE,
+        related_name="attendance_records",
+    )
+    date = models.DateField()
+    status = models.CharField(max_length=10, choices=Status.choices)
+    reason = models.CharField(max_length=255, blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="attendance_recorded",
+        limit_choices_to={"role": "TEACHER"},
+    )
+
+    class Meta:
+        ordering = ["-date"]
+        unique_together = ["enrollment", "date"] #stops a student from accidentally getting two attendance records on the same day. One record per student per day
+
+    def __str__(self):
+        return f"{self.enrollment.student.username} - {self.date} - {self.get_status_display()}"
