@@ -12,3 +12,8 @@
   expires, requests will start failing until the user logs in again.
   Should eventually use the refresh_token + /api/token/refresh/ to get
   a new access token automatically.
+
+
+
+  ## Attendance 
+  - Taken by class teachers
