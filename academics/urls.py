@@ -3,7 +3,8 @@ from .views import (AcademicYearViewSet,
                     SubjectViewSet,
                     TermViewSet,
                     SchoolClassViewSet,
-                    EnrollmentViewSet
+                    EnrollmentViewSet,
+                    AttendanceViewSet
 )
 
 
@@ -15,5 +16,6 @@ router.register(r"subjects", SubjectViewSet)
 router.register(r"terms", TermViewSet)
 router.register(r"school-classes", SchoolClassViewSet)
 router.register(r"enrollments", EnrollmentViewSet)
+router.register(r"attendance", AttendanceViewSet)
 
 urlpatterns = router.urls

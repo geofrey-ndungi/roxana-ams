@@ -1,11 +1,12 @@
 from rest_framework import viewsets
-from .models import AcademicYear, Term,  SchoolClass, Subject, Enrollment
+from .models import AcademicYear, Term,  SchoolClass, Subject, Enrollment, Attendance
 from .serializers import (AcademicYearSerializer,
                           TermSerializer, 
                           EnrollmentSerializer, 
                           SubjectSerializer, 
-                          SchoolClassSerializer)
-from .permissions import IsAdminOrReadOnly
+                          SchoolClassSerializer,
+                          AttendanceSerializer)
+from .permissions import IsAdminOrReadOnly, IsClassTeacherOrAdmin
 
 
 
@@ -41,3 +42,9 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+class AttendanceViewSet(viewsets.ModelViewSet):
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerializer
+    permission_classes= [IsClassTeacherOrAdmin] 
+
