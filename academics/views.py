@@ -6,7 +6,7 @@ from .serializers import (AcademicYearSerializer,
                           SubjectSerializer, 
                           SchoolClassSerializer,
                           AttendanceSerializer)
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsClassTeacherOrAdmin
 
 
 
@@ -46,5 +46,5 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
-    permission_classes= [IsAdminOrReadOnly] #
+    permission_classes= [IsClassTeacherOrAdmin] 
 
