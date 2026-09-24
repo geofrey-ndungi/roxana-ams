@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AcademicYear, Term, SchoolClass, Subject, Enrollment
+from .models import AcademicYear, Term, SchoolClass, Subject, Enrollment, Attendance
 
 class AcademicYearSerializer(serializers.ModelSerializer):  # Translates django objects into JSON
     class Meta:
@@ -16,7 +16,7 @@ class SchoolClassSerializer(serializers.ModelSerializer):
    class Meta:
 
     model = SchoolClass
-    fields = ["name"]
+    fields = ["name", "class_teacher"]
 
 class SubjectSerializer(serializers.ModelSerializer):
    class Meta:
@@ -31,3 +31,9 @@ class EnrollmentSerializer(serializers.ModelSerializer):
 
     model = Enrollment
     fields = ["student", "school_class", "academic_year", "date_enrolled"]
+
+
+class AttendanceSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Attendance
+    fields = ["id", "enrollment", "date", "status", "reason", "recorded_by"]
