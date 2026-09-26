@@ -15,5 +15,15 @@
 
 
 
-  ## Attendance 
-  - Taken by class teachers
+## Attendance permissions (IsClassTeacherOrAdmin)
+- ADMIN: full access. TEACHER: can only create/edit attendance for
+  students in a class where they are the assigned class_teacher
+  (checked via enrollment.school_class.class_teacher).
+- has_permission() handles the POST-create case (no object exists yet,
+  so we manually look up the enrollment from request data).
+- has_object_permission() handles PUT/PATCH/DELETE on existing records.
+- IMPORTANT: this permission logic only applies to the DRF API
+  (/api/attendance/). Django admin (/admin/) has its own separate
+  permission system (is_staff/is_superuser) and completely bypasses
+  our custom DRF permission classes. Testing permission logic must be
+  done via the actual API (Postman), not via /admin/.
