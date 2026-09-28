@@ -26,12 +26,18 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
+    student_name = serializers.SerializerMethodField()
 
-   class Meta:
+    class Meta:
+        model = Enrollment
+        fields = [
+            "id", "student", "student_name",
+            "school_class", "academic_year", "date_enrolled",
+        ]
 
-    model = Enrollment
-    fields = ["student", "school_class", "academic_year", "date_enrolled"]
-
+    def get_student_name(self, obj):
+        # to use the full name if it exists, otherwise fall back to the username
+        return obj.student.get_full_name() or obj.student.username
 
 class AttendanceSerializer(serializers.ModelSerializer):
   class Meta:

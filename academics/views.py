@@ -43,6 +43,21 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
     serializer_class = EnrollmentSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def get_queryset(self):
+        queryset = Enrollment.objects.select_related("student", "school_class")
+        school_class = self.request.query_params.get("school_class")
+        academic_year = self.request.query_params.get("academic_year")
+
+        if school_class:
+            queryset = queryset.filter(school_class_id=school_class)
+        if academic_year:
+            queryset = queryset.filter(academic_year_id=academic_year)
+
+        return queryset
+
+
+    
+
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
