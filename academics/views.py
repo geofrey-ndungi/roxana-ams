@@ -25,10 +25,22 @@ class TermViewSet(viewsets.ModelViewSet):
 
 
 class SchoolClassViewSet(viewsets.ModelViewSet):
-    queryset = SchoolClass.objects.all() 
+    queryset = SchoolClass.objects.all() # default: returns for all Classes
     serializer_class = SchoolClassSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+
+    # This runs instead of the plain `queryset` line above, whenever
+    # DRF needs to decide what to return for a request. It lets us
+    # change the result based on things like the URL's query params.
+    def get_queryset(self):
+        queryset = SchoolClass.objects.all()
+        mine = self.request.query_params.get("mine")
+
+        if mine == "true":
+            queryset = queryset.filter(class_teacher=self.request.user)
+
+        return queryset
 
 
 class SubjectViewSet(viewsets.ModelViewSet):
