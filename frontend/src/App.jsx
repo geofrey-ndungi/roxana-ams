@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Subjects from "./pages/Subjects";
 import { Route, Routes ,useNavigate , Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Attendance from "./pages/Attendance";
 
 function App() {
   const navigate = useNavigate();
@@ -34,6 +35,17 @@ function App() {
 
 
       <Route path="/login" element={<Login />} />
+
+      <Route
+       path = "/attendance"
+       element = {
+
+        <ProtectedRoute>
+          <Attendance onLogout={handleLogout}/>
+        </ProtectedRoute>
+       }
+      
+      />
       <Route
         path="/subjects"
         element={
