@@ -13,11 +13,11 @@ class TermSerializer(serializers.ModelSerializer):
     fields = ["name", "start_date", "end_date", "is_active"]
 
 class SchoolClassSerializer(serializers.ModelSerializer):
-   class Meta:
+    class Meta:
+        model = SchoolClass
+        fields = ["id", "name", "class_teacher"]
 
-    model = SchoolClass
-    fields = ["name", "class_teacher"]
-
+        
 class SubjectSerializer(serializers.ModelSerializer):
    class Meta:
 
