@@ -62,20 +62,72 @@ function Attendance({ onLogout }) {
 };
 
   return (
-    <>
-      <Header isLoggedIn={true} onLogout={onLogout} />
+  <>
+    <Header isLoggedIn={true} onLogout={onLogout} />
+    <div>
+      <h2>Attendance</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {schoolClass && <h3>Class: {schoolClass.name}</h3>}
+
       <div>
-        <h2>Attendance</h2>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {schoolClass && <h3>Class: {schoolClass.name}</h3>}
-        <ul>
-          {students.map((enrollment) => (
-            <li key={enrollment.id}>{enrollment.student_name}</li>
-          ))}
-        </ul>
+        <label>Date: </label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
       </div>
-    </>
-  );
+
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Status</th>
+            <th>Reason (if Excused)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map((enrollment) => (
+            <tr key={enrollment.id}>
+              <td>{enrollment.student_name}</td>
+              <td>
+                <select
+                  value={records[enrollment.id]?.status || "PRESENT"}
+                  onChange={(e) =>
+                    updateRecord(enrollment.id, "status", e.target.value)
+                  }
+                >
+                  <option value="PRESENT">Present</option>
+                  <option value="ABSENT">Absent</option>
+                  <option value="LATE">Late</option>
+                  <option value="EXCUSED">Excused</option>
+                </select>
+              </td>
+              <td>
+                {records[enrollment.id]?.status === "EXCUSED" && (
+                  <input
+                    type="text"
+                    placeholder="Reason"
+                    value={records[enrollment.id]?.reason || ""}
+                    onChange={(e) =>
+                      updateRecord(enrollment.id, "reason", e.target.value)
+                    }
+                  />
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <button disabled={saving}>
+        {saving ? "Saving..." : "Save Attendance"}
+      </button>
+
+      {saveMessage && <p>{saveMessage}</p>}
+    </div>
+  </>
+);
 }
 
 export default Attendance;
