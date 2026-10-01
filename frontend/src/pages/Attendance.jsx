@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import Header from "../components/Header";
+import "./Attendance.css";
 
 function Attendance({ onLogout }) {
   const [schoolClass, setSchoolClass] = useState(null);
@@ -10,12 +11,11 @@ function Attendance({ onLogout }) {
   const [records, setRecords] = useState({});
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
 
   useEffect(() => {
     const loadClassAndStudents = async () => {
       try {
-        //find the class this teacher is in charge of
-
         const classResponse = await api.get("/school-classes/?mine=true");
 
         if (classResponse.data.length === 0) {
@@ -26,21 +26,16 @@ function Attendance({ onLogout }) {
         const myClass = classResponse.data[0];
         setSchoolClass(myClass);
 
-        //get the students enrolled in that class
-
         const enrollmentsResponse = await api.get(
           `/enrollments/?school_class=${myClass.id}`
         );
         setStudents(enrollmentsResponse.data);
 
-
-        //Initializing every student as PRESENT
-
         const initialRecords = {};
         enrollmentsResponse.data.forEach((enrollment) => {
-        initialRecords[enrollment.id] = { status: "PRESENT", reason: "" };
-      });
-      setRecords(initialRecords);
+          initialRecords[enrollment.id] = { status: "PRESENT", reason: "" };
+        });
+        setRecords(initialRecords);
       } catch (err) {
         setError("Failed to load class data.");
         console.error(err);
@@ -48,114 +43,203 @@ function Attendance({ onLogout }) {
     };
 
     loadClassAndStudents();
-  },
-   []);
+  }, []);
 
   const updateRecord = (enrollmentId, field, value) => {
     setRecords((prev) => ({
-    ...prev,
-    [enrollmentId]: {
-      ...prev[enrollmentId],
-      [field]: value,
-    },
-  }));
-};
+      ...prev,
+      [enrollmentId]: {
+        ...prev[enrollmentId],
+        [field]: value,
+      },
+    }));
+  };
 
-const handleSave = async () => {
-  setSaving(true);
-  setSaveMessage("");
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveMessage("");
 
-  try {
-    // One POST request per student, sent one after another.
-    for (const enrollment of students) {
-      const record = records[enrollment.id];
+    try {
+      for (const enrollment of students) {
+        const record = records[enrollment.id];
 
-      await api.post("/attendance/", {
-        enrollment: enrollment.id,
-        date: date,
-        status: record.status,
-        reason: record.status === "EXCUSED" ? record.reason : "",
-      });
+        await api.post("/attendance/", {
+          enrollment: enrollment.id,
+          date: date,
+          status: record.status,
+          reason: record.status === "EXCUSED" ? record.reason : "",
+        });
+      }
+
+      setSaveMessage(`Attendance saved for ${schoolClass?.name || "class"}`);
+      setToastVisible(true);
+      setTimeout(() => setToastVisible(false), 2800);
+    } catch (err) {
+      setSaveMessage("Failed to save attendance. Please try again.");
+      setToastVisible(true);
+      setTimeout(() => setToastVisible(false), 2800);
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
+  };
 
-    setSaveMessage("Attendance saved successfully.");
-  } catch (err) {
-    setSaveMessage("Failed to save attendance. Please try again.");
-    console.error(err);
-  } finally {
-    setSaving(false);
-  }
-};
+  // Turns "Maya Lin" into "ML", for the round avatar circle.
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.trim().split(" ");
+    const first = parts[0]?.[0] || "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
+  };
+
+  // Count how many students currently have each status, for the metric tiles.
+  const counts = { PRESENT: 0, ABSENT: 0, LATE: 0, EXCUSED: 0 };
+  students.forEach((enrollment) => {
+    const status = records[enrollment.id]?.status;
+    if (status && counts[status] !== undefined) {
+      counts[status] += 1;
+    }
+  });
+
+  const markedCount = Object.values(records).filter((r) => r.status).length;
+
+  const statusOptions = [
+    { value: "PRESENT", label: "Present", className: "present" },
+    { value: "ABSENT", label: "Absent", className: "absent" },
+    { value: "LATE", label: "Late", className: "late" },
+    { value: "EXCUSED", label: "Excused", className: "excused" },
+  ];
 
   return (
-  <>
-    <Header isLoggedIn={true} onLogout={onLogout} />
-    <div>
-      <h2>Attendance</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {schoolClass && <h3>Class: {schoolClass.name}</h3>}
+    <>
+      <Header isLoggedIn={true} onLogout={onLogout} />
 
-      <div>
-        <label>Date: </label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+      <div className={`save-toast ${toastVisible ? "visible" : ""}`}>
+        {saveMessage}
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>Status</th>
-            <th>Reason (if Excused)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map((enrollment) => (
-            <tr key={enrollment.id}>
-              <td>{enrollment.student_name}</td>
-              <td>
-                <select
-                  value={records[enrollment.id]?.status || "PRESENT"}
-                  onChange={(e) =>
-                    updateRecord(enrollment.id, "status", e.target.value)
-                  }
-                >
-                  <option value="PRESENT">Present</option>
-                  <option value="ABSENT">Absent</option>
-                  <option value="LATE">Late</option>
-                  <option value="EXCUSED">Excused</option>
-                </select>
-              </td>
-              <td>
-                {records[enrollment.id]?.status === "EXCUSED" && (
-                  <input
-                    type="text"
-                    placeholder="Reason"
-                    value={records[enrollment.id]?.reason || ""}
-                    onChange={(e) =>
-                      updateRecord(enrollment.id, "reason", e.target.value)
-                    }
-                  />
+      <div className="attendance-page">
+        {error && <p style={{ color: "red" }}>{error}</p>}
+
+        <div className="attendance-topbar">
+          <div className="attendance-title">
+            <h2>{schoolClass ? schoolClass.name : "Attendance"}</h2>
+            <div className="attendance-subtitle">
+              {students.length} enrolled
+            </div>
+          </div>
+
+          <div className="date-pill">
+            <span>📅</span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="metrics-row">
+          <div className="metric-tile">
+            <div>
+              <div className="count">{counts.PRESENT}</div>
+              <div className="label">
+                <span className="metric-dot dot-present"></span> Present
+              </div>
+            </div>
+          </div>
+          <div className="metric-tile">
+            <div>
+              <div className="count">{counts.ABSENT}</div>
+              <div className="label">
+                <span className="metric-dot dot-absent"></span> Absent
+              </div>
+            </div>
+          </div>
+          <div className="metric-tile">
+            <div>
+              <div className="count">{counts.LATE}</div>
+              <div className="label">
+                <span className="metric-dot dot-late"></span> Late
+              </div>
+            </div>
+          </div>
+          <div className="metric-tile">
+            <div>
+              <div className="count">{counts.EXCUSED}</div>
+              <div className="label">
+                <span className="metric-dot dot-excused"></span> Excused
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="student-list">
+          {students.map((enrollment) => {
+            const record = records[enrollment.id] || {
+              status: "PRESENT",
+              reason: "",
+            };
+
+            return (
+              <div className="student-card" key={enrollment.id}>
+                <div className="student-row">
+                  <div className="student-info">
+                    <div className="avatar">
+                      {getInitials(enrollment.student_name)}
+                    </div>
+                    <div className="student-name">
+                      {enrollment.student_name}
+                    </div>
+                  </div>
+
+                  <div className="status-control">
+                    {statusOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`status-btn ${
+                          record.status === option.value
+                            ? `active ${option.className}`
+                            : ""
+                        }`}
+                        onClick={() =>
+                          updateRecord(enrollment.id, "status", option.value)
+                        }
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {record.status === "EXCUSED" && (
+                  <div className="excuse-row">
+                    <input
+                      type="text"
+                      placeholder="Reason for excuse..."
+                      value={record.reason}
+                      onChange={(e) =>
+                        updateRecord(enrollment.id, "reason", e.target.value)
+                      }
+                    />
+                  </div>
                 )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            );
+          })}
+        </div>
 
-
-      {/* callimg the handle save function */}
-      <button onClick = {handleSave} disabled={saving}> 
-        {saving ? "Saving..." : "Save Attendance"}
-      </button>
-
-      {saveMessage && <p>{saveMessage}</p>}
-    </div>
-  </>
-);
+        <div className="save-bar">
+          <div className="save-bar-status">{markedCount} of {students.length} marked</div>
+          <button onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save Attendance"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
 }
 
 export default Attendance;
