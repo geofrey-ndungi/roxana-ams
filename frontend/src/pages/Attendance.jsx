@@ -51,7 +51,7 @@ function Attendance({ onLogout }) {
   },
    []);
 
-   const updateRecord = (enrollmentId, field, value) => {
+  const updateRecord = (enrollmentId, field, value) => {
     setRecords((prev) => ({
     ...prev,
     [enrollmentId]: {
@@ -59,6 +59,32 @@ function Attendance({ onLogout }) {
       [field]: value,
     },
   }));
+};
+
+const handleSave = async () => {
+  setSaving(true);
+  setSaveMessage("");
+
+  try {
+    // One POST request per student, sent one after another.
+    for (const enrollment of students) {
+      const record = records[enrollment.id];
+
+      await api.post("/attendance/", {
+        enrollment: enrollment.id,
+        date: date,
+        status: record.status,
+        reason: record.status === "EXCUSED" ? record.reason : "",
+      });
+    }
+
+    setSaveMessage("Attendance saved successfully.");
+  } catch (err) {
+    setSaveMessage("Failed to save attendance. Please try again.");
+    console.error(err);
+  } finally {
+    setSaving(false);
+  }
 };
 
   return (
@@ -120,7 +146,9 @@ function Attendance({ onLogout }) {
         </tbody>
       </table>
 
-      <button disabled={saving}>
+
+      {/* callimg the handle save function */}
+      <button onClick = {handleSave} disabled={saving}> 
         {saving ? "Saving..." : "Save Attendance"}
       </button>
 
