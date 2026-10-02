@@ -1,0 +1,311 @@
+.attendance-page {
+  background-color: #f5f5f7;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* Top summary bar */
+.attendance-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.attendance-title h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #0a1f5c;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.attendance-subtitle {
+  color: #8e8e93;
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}
+
+/* Date pill selector */
+.date-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ffffff;
+  border-radius: 9999px;
+  padding: 0.35rem 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.date-arrow {
+  position: relative;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #8e8e93;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.date-arrow:hover {
+  background: #f2f2f7;
+  color: #1d1d1f;
+}
+
+.date-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1d1d1f;
+  padding: 0 0.3rem;
+  white-space: nowrap;
+}
+
+/* The real date input sits on top of the text, fully invisible,
+   so clicking the pill still opens the native date picker. */
+.date-input-hidden {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+}
+
+/* Metric tiles */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-tile {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.metric-tile .count {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  line-height: 1;
+}
+
+.metric-tile .label {
+  font-size: 0.78rem;
+  color: #8e8e93;
+  margin-top: 0.15rem;
+}
+
+.metric-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-present { background: #0a1f5c; }
+.dot-absent { background: #ff3b30; }
+.dot-late { background: #c1622a; }
+.dot-excused { background: #5856d6; }
+
+/* Student cards */
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-bottom: 6rem; /* room for the sticky save bar */
+}
+
+.student-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.15s ease;
+}
+
+.student-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.student-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e9e7ed;
+  color: #1d1d1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.student-name {
+  font-weight: 600;
+  color: #1d1d1f;
+  font-size: 0.95rem;
+}
+
+/* Segmented status control */
+.status-control {
+  display: flex;
+  align-items: center;
+  background: #f2f2f7;
+  border-radius: 9999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.status-btn {
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #8e8e93;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.status-btn:hover {
+  color: #1d1d1f;
+}
+
+.status-btn.active {
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.status-btn.active.present { color: #0a1f5c; }
+.status-btn.active.absent { color: #ff3b30; }
+.status-btn.active.late { color: #c1622a; }
+.status-btn.active.excused { color: #5856d6; }
+
+/* Reason row (appears only when Excused) */
+.excuse-row {
+  margin-top: 0.7rem;
+}
+
+.excuse-row input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 38px;
+  padding: 0 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #e5e5ea;
+  background: #f5f5f7;
+  font-size: 0.85rem;
+  color: #1d1d1f;
+}
+
+.excuse-row input:focus {
+  outline: none;
+  border-color: #0a1f5c;
+  box-shadow: 0 0 0 3px rgba(10, 31, 92, 0.1);
+}
+
+/* Sticky bottom save bar */
+.save-bar {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-radius: 9999px;
+  padding: 0.7rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.08);
+  width: 90%;
+  max-width: 500px;
+}
+
+.save-bar-status {
+  font-size: 0.8rem;
+  color: #8e8e93;
+}
+
+.save-bar button {
+  background: #0a1f5c;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.3rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.save-bar button:hover {
+  background: #071642;
+}
+
+.save-bar button:active {
+  transform: scale(0.98);
+}
+
+.save-bar button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Toast */
+.save-toast {
+  position: fixed;
+  top: 5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 0.6rem 1.2rem;
+  border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  font-size: 0.85rem;
+  color: #1d1d1f;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 50;
+}
+
+.save-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
