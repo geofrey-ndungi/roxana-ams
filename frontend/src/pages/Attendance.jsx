@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../api/axios";
 import Header from "../components/Header";
 import "./Attendance.css";
@@ -12,7 +12,9 @@ function Attendance({ onLogout }) {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
+  const dateInputRef = useRef(null);
 
+  
   useEffect(() => {
     const loadClassAndStudents = async () => {
       try {
@@ -93,6 +95,12 @@ function Attendance({ onLogout }) {
     return (first + last).toUpperCase();
   };
 
+  const changeDateBy = (days) => {
+  const current = new Date(date);
+  current.setDate(current.getDate() + days);
+  setDate(current.toISOString().split("T")[0]);
+};
+
   // Count how many students currently have each status, for the metric tiles.
   const counts = { PRESENT: 0, ABSENT: 0, LATE: 0, EXCUSED: 0 };
   students.forEach((enrollment) => {
@@ -130,14 +138,48 @@ function Attendance({ onLogout }) {
             </div>
           </div>
 
-          <div className="date-pill">
-            <span>📅</span>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
+          <div className="date-pill" onClick={() => dateInputRef.current?.showPicker()}>
+  <button
+    type="button"
+    className="date-arrow"
+    onClick={(e) => {
+      e.stopPropagation();
+      changeDateBy(-1);
+    }}
+    aria-label="Previous day"
+  >
+    ‹
+  </button>
+
+  <span className="date-text">
+    {new Date(date).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })}
+  </span>
+
+  <input
+    ref={dateInputRef}
+    type="date"
+    value={date}
+    onChange={(e) => setDate(e.target.value)}
+    className="date-input-hidden"
+  />
+
+  <button
+    type="button"
+    className="date-arrow"
+    onClick={(e) => {
+      e.stopPropagation();
+      changeDateBy(1);
+    }}
+    aria-label="Next day"
+  >
+    ›
+  </button>
+</div>
         </div>
 
         <div className="metrics-row">
