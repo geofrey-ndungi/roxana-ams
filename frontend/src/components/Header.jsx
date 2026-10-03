@@ -27,6 +27,7 @@ function Header({ isLoggedIn, onLogout }) {
         <nav>
           <Link to="/">Home</Link>
           <Link to="/subjects">Subjects</Link>
+          {isLoggedIn && <Link to="/attendance">Attendance</Link>}
           <Link to="/help">Help</Link>
           {isLoggedIn && (
             <button className="logout-btn" onClick={onLogout}>
