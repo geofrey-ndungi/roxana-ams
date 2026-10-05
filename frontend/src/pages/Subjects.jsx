@@ -4,6 +4,9 @@ import Header from "../components/Header";
 import "./Subjects.css";
 import mathImage from "../assets/subjects/math.jpeg";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass, faBook } from "@fortawesome/free-solid-svg-icons";
+
 
 
 
@@ -67,19 +70,21 @@ const getBannerImage = (subjectName) => {
           </div>
 
           <div className="subjects-search">
-            <span className="subjects-search-icon">🔍</span>
-            <input
-              type="text"
-              placeholder="Search subjects or codes..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+  <FontAwesomeIcon icon={faMagnifyingGlass} className="subjects-search-icon" />
+  <input
+    type="text"
+    placeholder="Search subjects or codes..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+  />
+</div>
         </div>
 
         {filteredSubjects.length === 0 ? (
           <div className="subjects-empty">
-            <div className="subjects-empty-icon">📚</div>
+            <div className="subjects-empty-icon">
+  <FontAwesomeIcon icon={faBook} />
+</div>
             <h3>No subjects found</h3>
             <p>
               {subjects.length === 0
