@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import Header from "../components/Header";
+import SubjectCard from "../components/SubjectCard";
 import "./Subjects.css";
 import mathImage from "../assets/subjects/math.jpeg";
 
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faBook } from "@fortawesome/free-solid-svg-icons";
-
-
-
 
 
 
@@ -33,17 +32,17 @@ function Subjects({ onLogout }) {
     fetchSubjects();
   }, []);
 
-// Maps a subject's name to its specific image. Add more entries here
-// as you get more images. Anything not listed falls back to a generic one.
-const subjectImages = {
-  Mathematics: mathImage,
-};
+  // Maps a subject's name to its specific image. Add more entries here
+  // as you get more images. Anything not listed falls back to a generic one.
+  const subjectImages = {
+    Mathematics: mathImage,
+  };
 
-const defaultImage = mathImage; // temporary fallback until we have more images
+  const defaultImage = mathImage; // temporary fallback until we have more images
 
-const getBannerImage = (subjectName) => {
-  return subjectImages[subjectName] || defaultImage;
-};
+  const getBannerImage = (subjectName) => {
+    return subjectImages[subjectName] || defaultImage;
+  };
   // Only show subjects whose name or code matches what's typed.
   const filteredSubjects = subjects.filter((subject) => {
     const query = search.trim().toLowerCase();
@@ -70,21 +69,24 @@ const getBannerImage = (subjectName) => {
           </div>
 
           <div className="subjects-search">
-  <FontAwesomeIcon icon={faMagnifyingGlass} className="subjects-search-icon" />
-  <input
-    type="text"
-    placeholder="Search subjects or codes..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-  />
-</div>
+            <FontAwesomeIcon
+              icon={faMagnifyingGlass}
+              className="subjects-search-icon"
+            />
+            <input
+              type="text"
+              placeholder="Search subjects or codes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
 
         {filteredSubjects.length === 0 ? (
           <div className="subjects-empty">
             <div className="subjects-empty-icon">
-  <FontAwesomeIcon icon={faBook} />
-</div>
+              <FontAwesomeIcon icon={faBook} />
+            </div>
             <h3>No subjects found</h3>
             <p>
               {subjects.length === 0
@@ -95,19 +97,11 @@ const getBannerImage = (subjectName) => {
         ) : (
           <div className="subjects-grid">
   {filteredSubjects.map((subject) => (
-    <div className="subject-card" key={subject.id}>
-      <img
-  src={getBannerImage(subject.name)}
-  alt={subject.name}
-  className="subject-card-banner"
-/>
-      <div className="subject-card-body">
-        <h3>{subject.name}</h3>
-        {subject.code && (
-          <span className="subject-code-pill">{subject.code}</span>
-        )}
-      </div>
-    </div>
+    <SubjectCard
+      key={subject.id}
+      subject={subject}
+      imageSrc={getBannerImage(subject.name)}
+    />
   ))}
 </div>
         )}

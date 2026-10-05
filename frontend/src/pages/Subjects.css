@@ -59,56 +59,7 @@
   pointer-events: none;
 }
 
-/* Card grid */
-.subjects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-}
 
-.subject-card {
-  position: relative;
-  background: #ffffff;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-}
-
-.subject-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-
-.subject-card-banner {
-  width: 100%;
-  height: 110px;
-  object-fit: cover;
-  display: block;
-  background: #e9e7ed;
-}
-
-.subject-card-body {
-  padding: 1rem 1.25rem 1.25rem 1.25rem;
-}
-
-.subject-card h3 {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin: 0 0 0.6rem 0;
-  letter-spacing: -0.01em;
-}
-
-.subject-code-pill {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  background: rgba(10, 31, 92, 0.08);
-  color: #0a1f5c;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
 
 /* Empty state */
 .subjects-empty {
