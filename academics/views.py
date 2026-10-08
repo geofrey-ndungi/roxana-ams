@@ -7,6 +7,15 @@ from .serializers import (AcademicYearSerializer,
                           SchoolClassSerializer,
                           AttendanceSerializer)
 from .permissions import IsAdminOrReadOnly, IsClassTeacherOrAdmin
+from django.db.models import Count
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+
+
+
+
+
 
 
 
@@ -75,3 +84,51 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     serializer_class = AttendanceSerializer
     permission_classes= [IsClassTeacherOrAdmin] 
 
+
+
+class MyProfileView(APIView):
+    """Everything the student profile page needs, for the logged-in user."""
+
+    def get(self, request):
+        user = request.user
+
+        # The student's most recent enrollment (latest academic year first)
+        enrollment = (
+            Enrollment.objects.select_related("school_class", "academic_year")
+            .filter(student=user)
+            .order_by("-academic_year__year")
+            .first()
+        )
+
+        # Start every status at 0, then fill in the real counts
+        attendance = {"PRESENT": 0, "ABSENT": 0, "LATE": 0, "EXCUSED": 0}
+        if enrollment:
+            rows = (
+                enrollment.attendance_records.values("status")
+                .annotate(total=Count("id"))
+            )
+            for row in rows:
+                attendance[row["status"]] = row["total"]
+
+        guardians = [
+            {
+                "name": g.name,
+                "relationship": g.relationship,
+                "phone_number": g.phone_number,
+                "email": g.email,
+            }
+            for g in user.guardians.all()
+        ]
+
+        photo_url = request.build_absolute_uri(user.photo.url) if user.photo else None
+
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "full_name": user.get_full_name() or user.username,
+            "photo": photo_url,
+            "school_class": enrollment.school_class.name if enrollment else None,
+            "academic_year": enrollment.academic_year.year if enrollment else None,
+            "attendance": attendance,
+            "guardians": guardians,
+        })

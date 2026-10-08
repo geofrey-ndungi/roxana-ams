@@ -1,10 +1,12 @@
 from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import (AcademicYearViewSet, 
                     SubjectViewSet,
                     TermViewSet,
                     SchoolClassViewSet,
                     EnrollmentViewSet,
-                    AttendanceViewSet
+                    AttendanceViewSet,
+                    MyProfileView,
 )
 
 
@@ -18,4 +20,6 @@ router.register(r"school-classes", SchoolClassViewSet)
 router.register(r"enrollments", EnrollmentViewSet)
 router.register(r"attendance", AttendanceViewSet)
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path("profile/me/", MyProfileView.as_view(),name ="my-profile"),
+]
