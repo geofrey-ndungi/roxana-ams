@@ -27,14 +27,23 @@ function ProfileSkeleton() {
         <div className="profile-hero">
           <div className="skeleton-circle"></div>
           <div style={{ flex: 1 }}>
-            <div className="skeleton-bar" style={{ width: "50%", height: 22 }}></div>
-            <div className="skeleton-bar" style={{ width: "30%", marginTop: 12 }}></div>
+            <div
+              className="skeleton-bar"
+              style={{ width: "50%", height: 22 }}
+            ></div>
+            <div
+              className="skeleton-bar"
+              style={{ width: "30%", marginTop: 12 }}
+            ></div>
           </div>
         </div>
       </div>
 
       <div className="profile-card skeleton-card">
-        <div className="skeleton-bar" style={{ width: "30%", height: 18, marginBottom: 20 }}></div>
+        <div
+          className="skeleton-bar"
+          style={{ width: "30%", height: 18, marginBottom: 20 }}
+        ></div>
         <div className="attendance-layout">
           <div className="skeleton-block" style={{ height: 170 }}></div>
           <div className="stat-tiles">
@@ -47,7 +56,10 @@ function ProfileSkeleton() {
       </div>
 
       <div className="profile-card skeleton-card">
-        <div className="skeleton-bar" style={{ width: "25%", height: 18, marginBottom: 20 }}></div>
+        <div
+          className="skeleton-bar"
+          style={{ width: "25%", height: 18, marginBottom: 20 }}
+        ></div>
         <div className="skeleton-block"></div>
       </div>
     </>
@@ -101,163 +113,168 @@ function StudentProfile({ onLogout }) {
     <>
       <Header isLoggedIn={true} onLogout={onLogout} />
 
-      <div className="profile-page">
-        {error && <p className="profile-error">{error}</p>}
-        {!error && !profile && <ProfileSkeleton />}
+      <div className="profile-bg">
+        <div className="profile-page">
+          {error && <p className="profile-error">{error}</p>}
+          {!error && !profile && <ProfileSkeleton />}
 
-        {profile && (
-          <>
-            {/* Hero */}
-            <div className="profile-card">
-              <div className="profile-hero">
-                {profile.photo ? (
-                  <img
-                    src={profile.photo}
-                    alt={profile.full_name}
-                    className="profile-avatar"
-                  />
-                ) : (
-                  <div className="profile-avatar profile-avatar-fallback">
-                    {getInitials(profile.full_name)}
-                  </div>
-                )}
-
-                <div>
-                  <div className="profile-name-row">
-                    <h1 className="profile-name">{profile.full_name}</h1>
-                    {profile.school_class && (
-                      <span className="profile-pill">
-                        {profile.school_class} · {profile.academic_year}
-                      </span>
-                    )}
-                  </div>
-                  <div className="profile-username">@{profile.username}</div>
-                  {!profile.school_class && (
-                    <div className="profile-username">
-                      Not enrolled in a class yet
+          {profile && (
+            <>
+              {/* Hero */}
+              <div className="profile-card">
+                <div className="profile-hero">
+                  {profile.photo ? (
+                    <img
+                      src={profile.photo}
+                      alt={profile.full_name}
+                      className="profile-avatar"
+                    />
+                  ) : (
+                    <div className="profile-avatar profile-avatar-fallback">
+                      {getInitials(profile.full_name)}
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
 
-            {/* Attendance */}
-            <div className="profile-card">
-              <div className="profile-card-head">
-                <div>
-                  <h2 className="profile-card-title">Attendance</h2>
-                  <div className="profile-caption">
-                    {totalRecorded} {totalRecorded === 1 ? "day" : "days"} recorded
-                  </div>
-                </div>
-              </div>
-
-              <div className="attendance-layout">
-                <div className="ring-panel">
-                  <div className="ring-wrap">
-                    <svg viewBox="0 0 100 100">
-                      <circle
-                        className="ring-track"
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="transparent"
-                        strokeWidth="7"
-                      />
-                      <circle
-                        className={`ring-fill ${rateIsLow ? "ring-low" : ""}`}
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="transparent"
-                        strokeWidth="7"
-                        strokeLinecap="round"
-                        strokeDasharray={RING_CIRCUMFERENCE}
-                        strokeDashoffset={ringOffset}
-                      />
-                    </svg>
-                    <div className="ring-center">
-                      <span className="ring-value">
-                        {totalRecorded ? `${rate.toFixed(1)}%` : "--"}
-                      </span>
-                      <span className="ring-label">Rate</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="stat-tiles">
-                  {statTiles.map((tile) => (
-                    <div className="stat-tile" key={tile.key}>
-                      <div className="stat-tile-top">
-                        <span>{tile.label}</span>
-                        <span className={`stat-dot ${tile.dot}`}></span>
-                      </div>
-                      <div>
-                        <span className="stat-number">{counts[tile.key]}</span>
-                        <span className="stat-unit">
-                          {counts[tile.key] === 1 ? "day" : "days"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Guardians */}
-            <div className="profile-card">
-              <div className="profile-card-head">
-                <h2 className="profile-card-title">Guardians</h2>
-                <span className="profile-pill">
-                  {profile.guardians.length}{" "}
-                  {profile.guardians.length === 1 ? "contact" : "contacts"}
-                </span>
-              </div>
-
-              {profile.guardians.length === 0 ? (
-                <div className="guardian-empty">
-                  No guardian details added yet.
-                </div>
-              ) : (
-                profile.guardians.map((guardian, index) => (
-                  <div className="guardian-row" key={index}>
-                    <div className="guardian-info">
-                      <div className="guardian-name-line">
-                        <span className="guardian-name">{guardian.name}</span>
+                  <div className="profile-details">
+                    <div className="profile-name-row">
+                      <h1 className="profile-name">{profile.full_name}</h1>
+                      {profile.school_class && (
                         <span className="profile-pill">
-                          {guardian.relationship}
+                          {profile.school_class} · {profile.academic_year}
                         </span>
-                      </div>
-                      <div className="guardian-contact">
-                        <span>{guardian.phone_number}</span>
-                        {guardian.email && <span>{guardian.email}</span>}
-                      </div>
-                    </div>
-
-                    <div className="guardian-actions">
-                      <a
-                        className="icon-btn"
-                        href={`tel:${guardian.phone_number}`}
-                        aria-label={`Call ${guardian.name}`}
-                      >
-                        <FontAwesomeIcon icon={faPhone} />
-                      </a>
-                      {guardian.email && (
-                        <a
-                          className="icon-btn"
-                          href={`mailto:${guardian.email}`}
-                          aria-label={`Email ${guardian.name}`}
-                        >
-                          <FontAwesomeIcon icon={faEnvelope} />
-                        </a>
                       )}
                     </div>
+                    <div className="profile-username">@{profile.username}</div>
+                    {!profile.school_class && (
+                      <div className="profile-username">
+                        Not enrolled in a class yet
+                      </div>
+                    )}
                   </div>
-                ))
-              )}
-            </div>
-          </>
-        )}
+                </div>
+              </div>
+
+              {/* Attendance */}
+              <div className="profile-card">
+                <div className="profile-card-head">
+                  <div>
+                    <h2 className="profile-card-title">Attendance</h2>
+                    <div className="profile-caption">
+                      {totalRecorded} {totalRecorded === 1 ? "day" : "days"}{" "}
+                      recorded
+                    </div>
+                  </div>
+                </div>
+
+                <div className="attendance-layout">
+                  <div className="ring-panel">
+                    <div className="ring-wrap">
+                      <svg viewBox="0 0 100 100">
+                        <circle
+                          className="ring-track"
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          strokeWidth="7"
+                        />
+                        <circle
+                          className={`ring-fill ${rateIsLow ? "ring-low" : ""}`}
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          strokeWidth="7"
+                          strokeLinecap="round"
+                          strokeDasharray={RING_CIRCUMFERENCE}
+                          strokeDashoffset={ringOffset}
+                        />
+                      </svg>
+                      <div className="ring-center">
+                        <span className="ring-value">
+                          {totalRecorded ? `${rate.toFixed(1)}%` : "--"}
+                        </span>
+                        <span className="ring-label">Rate</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="stat-tiles">
+                    {statTiles.map((tile) => (
+                      <div className="stat-tile" key={tile.key}>
+                        <div className="stat-tile-top">
+                          <span>{tile.label}</span>
+                          <span className={`stat-dot ${tile.dot}`}></span>
+                        </div>
+                        <div>
+                          <span className="stat-number">
+                            {counts[tile.key]}
+                          </span>
+                          <span className="stat-unit">
+                            {counts[tile.key] === 1 ? "day" : "days"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Guardians */}
+              <div className="profile-card">
+                <div className="profile-card-head">
+                  <h2 className="profile-card-title">Guardians</h2>
+                  <span className="profile-pill">
+                    {profile.guardians.length}{" "}
+                    {profile.guardians.length === 1 ? "contact" : "contacts"}
+                  </span>
+                </div>
+
+                {profile.guardians.length === 0 ? (
+                  <div className="guardian-empty">
+                    No guardian details added yet.
+                  </div>
+                ) : (
+                  profile.guardians.map((guardian, index) => (
+                    <div className="guardian-row" key={index}>
+                      <div className="guardian-info">
+                        <div className="guardian-name-line">
+                          <span className="guardian-name">{guardian.name}</span>
+                          <span className="profile-pill">
+                            {guardian.relationship}
+                          </span>
+                        </div>
+                        <div className="guardian-contact">
+                          <span>{guardian.phone_number}</span>
+                          {guardian.email && <span>{guardian.email}</span>}
+                        </div>
+                      </div>
+
+                      <div className="guardian-actions">
+                        <a
+                          className="icon-btn"
+                          href={`tel:${guardian.phone_number}`}
+                          aria-label={`Call ${guardian.name}`}
+                        >
+                          <FontAwesomeIcon icon={faPhone} />
+                        </a>
+                        {guardian.email && (
+                          <a
+                            className="icon-btn"
+                            href={`mailto:${guardian.email}`}
+                            aria-label={`Email ${guardian.name}`}
+                          >
+                            <FontAwesomeIcon icon={faEnvelope} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </>
   );
