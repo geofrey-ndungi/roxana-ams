@@ -187,3 +187,8 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+#where the uploaded photos will be kept/stored
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
