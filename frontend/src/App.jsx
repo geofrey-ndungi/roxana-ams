@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
 import Login from "./pages/Login";
 import Subjects from "./pages/Subjects";
-import { Route, Routes ,useNavigate , Navigate } from "react-router-dom";
+import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Attendance from "./pages/Attendance";
+import StudentProfile from "./pages/StudentProfile";
+
+
+
+
+
 
 function App() {
   const navigate = useNavigate();
@@ -25,32 +31,37 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
-    navigate("/login");  // when session expired, navigate to /login
+    navigate("/login"); // when session expired, navigate to /login
   };
 
   return (
     <Routes>
       {/* This is now the root "/" */}
-      <Route path="/" element={<Navigate to="/subjects" replace />} /> 
-
+      <Route path="/" element={<Navigate to="/subjects" replace />} />
 
       <Route path="/login" element={<Login />} />
 
       <Route
-       path = "/attendance"
-       element = {
-
-        <ProtectedRoute>
-          <Attendance onLogout={handleLogout}/>
-        </ProtectedRoute>
-       }
-      
+        path="/attendance"
+        element={
+          <ProtectedRoute>
+            <Attendance onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/subjects"
         element={
           <ProtectedRoute>
             <Subjects onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <StudentProfile onLogout={handleLogout} />
           </ProtectedRoute>
         }
       />
