@@ -129,6 +129,10 @@ class MyProfileView(APIView):
             "photo": photo_url,
             "school_class": enrollment.school_class.name if enrollment else None,
             "academic_year": enrollment.academic_year.year if enrollment else None,
+            "admission_number": user.admission_number,
+            "gender": user.get_gender_display() if user.gender else None,
+            "residence": user.residence,
+            "date_of_birth": user.date_of_birth,
             "attendance": attendance,
             "guardians": guardians,
         })
