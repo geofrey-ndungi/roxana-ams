@@ -18,13 +18,13 @@ class CustomUserAdmin(UserAdmin):
     list_display = ["username", "email", "role", "is_staff", "is_active"]
     fieldsets = UserAdmin.fieldsets + (
         ("Role Info", {"fields": ("role", "phone_number", "photo")}),
+        ("Student Info", {"fields": ("admission_number", "gender", "residence", "date_of_birth")}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ("Role Info", {"fields": ("role", "phone_number", "photo")}),
+        ("Student Info", {"fields": ("admission_number", "gender", "residence", "date_of_birth")}),
     )
     inlines = [GuardianInline]
-
-
 
 
 admin.site.register(User, CustomUserAdmin)

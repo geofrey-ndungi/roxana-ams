@@ -7,6 +7,11 @@ from django.conf import settings
 
 # Create your models here.
 class User(AbstractUser):
+    class Gender(models.TextChoices):
+            MALE = "MALE", "Male"
+            FEMALE = "FEMALE", "Female"
+
+            
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Admin"
         TEACHER = "TEACHER", "Teacher"
@@ -19,9 +24,20 @@ class User(AbstractUser):
     )
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     photo = models.ImageField(upload_to="photos/", blank=True, null=True)
+    admission_number = models.CharField(
+        max_length=20, 
+        unique=True, 
+        blank=True, 
+        null=True
+    )
+    gender = models.CharField(max_length=10, choices=Gender.choices, blank=True)
+    residence = models.CharField(max_length=255, blank=True)
+    date_of_birth = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.username} ({self.role})"
+    
+    
 
 
 class Guardian(models.Model):
