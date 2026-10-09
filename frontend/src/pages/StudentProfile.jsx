@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPhone, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faPhone, faEnvelope, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axios";
 import Header from "../components/Header";
 import "./StudentProfile.css";
+
+
+
 
 // The ring is an SVG circle with radius 40. Its edge length
 // (circumference) is 2 * pi * 40, about 251. We "draw" part of
@@ -69,6 +72,7 @@ function ProfileSkeleton() {
 function StudentProfile({ onLogout }) {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
+  const [infoOpen, setInfoOpen] = useState(true);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -108,6 +112,30 @@ function StudentProfile({ onLogout }) {
   const rate = totalRecorded ? (attended / totalRecorded) * 100 : 0;
   const ringOffset = RING_CIRCUMFERENCE * (1 - rate / 100);
   const rateIsLow = totalRecorded > 0 && rate < LOW_RATE_THRESHOLD;
+
+  // Turns "2012-03-05" into "5 March 2012". UTC is set so the day
+  // can't shift by one depending on the browser's time zone.
+  const formatDate = (isoDate) => {
+    if (!isoDate) return null;
+    return new Date(isoDate).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+  };
+
+
+   // One entry per row in the Personal Information card.
+  const infoRows = profile
+    ? [
+        { label: "Name", value: profile.full_name },
+        { label: "Admission number", value: profile.admission_number },
+        { label: "Gender", value: profile.gender },
+        { label: "Residence", value: profile.residence },
+        { label: "Date of birth", value: formatDate(profile.date_of_birth) },
+      ]
+    : [];
 
   return (
     <>
@@ -152,6 +180,37 @@ function StudentProfile({ onLogout }) {
                     )}
                   </div>
                 </div>
+
+                {/* Personal Information (dropdown) */}
+            <div className="profile-card">
+              <button
+                type="button"
+                className="info-toggle"
+                onClick={() => setInfoOpen(!infoOpen)}
+                aria-expanded={infoOpen}
+              >
+                <span className="profile-card-title">Personal Information</span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`info-chevron ${infoOpen ? "open" : ""}`}
+                />
+              </button>
+
+              {infoOpen && (
+                <div className="info-grid">
+                  {infoRows.map((row) => (
+                    <div key={row.label}>
+                      <div className="info-label">{row.label}</div>
+                      <div
+                        className={`info-value ${row.value ? "" : "info-empty"}`}
+                      >
+                        {row.value || "Not provided"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
               </div>
 
               {/* Attendance */}
