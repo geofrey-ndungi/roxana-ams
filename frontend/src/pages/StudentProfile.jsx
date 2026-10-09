@@ -226,37 +226,38 @@ function StudentProfile({ onLogout }) {
                 </div>
 
                 <div className="attendance-layout">
-                  <div className="ring-panel">
-                    <div className="ring-wrap">
-                      <svg viewBox="0 0 100 100">
-                        <circle
-                          className="ring-track"
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="transparent"
-                          strokeWidth="7"
-                        />
-                        <circle
-                          className={`ring-fill ${rateIsLow ? "ring-low" : ""}`}
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="transparent"
-                          strokeWidth="7"
-                          strokeLinecap="round"
-                          strokeDasharray={RING_CIRCUMFERENCE}
-                          strokeDashoffset={ringOffset}
-                        />
-                      </svg>
-                      <div className="ring-center">
-                        <span className="ring-value">
-                          {totalRecorded ? `${rate.toFixed(1)}%` : "--"}
-                        </span>
-                        <span className="ring-label">Rate</span>
-                      </div>
-                    </div>
-                  </div>
+<div className="ring-panel">
+  <div className="ring-wrap">
+    <svg viewBox="0 0 100 100">
+      <circle
+        className="ring-track"
+        cx="50"
+        cy="50"
+        r="40"
+        fill="transparent"
+        strokeWidth="7"
+      />
+      <circle
+        className={`ring-fill ${rateIsLow ? "ring-low" : ""}`}
+        cx="50"
+        cy="50"
+        r="40"
+        fill="transparent"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeDasharray={RING_CIRCUMFERENCE}
+        style={{ '--stroke-offset': `${ringOffset}px` }} 
+      />
+    </svg>
+    <div className="ring-center">
+      <span className="ring-value">
+        {totalRecorded ? `${rate.toFixed(1)}%` : "--"}
+      </span>
+      <span className="ring-label">Rate</span>
+    </div>
+  </div>
+</div>
+
 
                   <div className="stat-tiles">
                     {statTiles.map((tile) => (

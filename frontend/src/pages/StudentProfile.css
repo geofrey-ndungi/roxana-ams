@@ -200,7 +200,8 @@
 
 .ring-fill {
   stroke: #0a1f5c;
-  transition: stroke-dashoffset 1s ease-out;
+  stroke-dashoffset: 251.32;
+  animation: fillRing 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .ring-fill.ring-low {
@@ -231,6 +232,14 @@
   text-transform: uppercase;
   color: #86868b;
 }
+
+@keyframes fillRing {
+  to {
+    stroke-dashoffset: var(--stroke-offset);
+  }
+}
+
+
 
 .stat-tiles {
   display: grid;
