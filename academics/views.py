@@ -125,6 +125,7 @@ class MyProfileView(APIView):
         return Response({
             "id": user.id,
             "username": user.username,
+            "role": user.role,
             "full_name": user.get_full_name() or user.username,
             "photo": photo_url,
             "school_class": enrollment.school_class.name if enrollment else None,
@@ -135,4 +136,5 @@ class MyProfileView(APIView):
             "date_of_birth": user.date_of_birth,
             "attendance": attendance,
             "guardians": guardians,
+            
         })
