@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import api from "../api/axios";
-import Header from "../components/Header";
+// import Header from "../components/Header";
 import "./Attendance.css";
 
-function Attendance({ onLogout }) {
+function Attendance() {
   const [schoolClass, setSchoolClass] = useState(null);
   const [students, setStudents] = useState([]);
   const [error, setError] = useState("");
@@ -121,7 +121,6 @@ function Attendance({ onLogout }) {
 
   return (
     <>
-      <Header isLoggedIn={true} onLogout={onLogout} />
 
       <div className={`save-toast ${toastVisible ? "visible" : ""}`}>
         {saveMessage}

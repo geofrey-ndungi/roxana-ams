@@ -5,6 +5,7 @@ import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Attendance from "./pages/Attendance";
 import StudentProfile from "./pages/StudentProfile";
+import AppLayout from "./components/AppLayout";
 
 
 
@@ -36,35 +37,21 @@ function App() {
 
   return (
     <Routes>
-      {/* This is now the root "/" */}
+      <Route path="/login" element={<Login />} />
       <Route path="/" element={<Navigate to="/subjects" replace />} />
 
-      <Route path="/login" element={<Login />} />
-
+      {/* Pages that share the sidebar / header shell */}
       <Route
-        path="/attendance"
         element={
           <ProtectedRoute>
-            <Attendance onLogout={handleLogout} />
+            <AppLayout onLogout={handleLogout} />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/subjects"
-        element={
-          <ProtectedRoute>
-            <Subjects onLogout={handleLogout} />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <StudentProfile onLogout={handleLogout} />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route path="/subjects" element={<Subjects />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/profile" element={<StudentProfile />} />
+      </Route>
     </Routes>
   );
 }

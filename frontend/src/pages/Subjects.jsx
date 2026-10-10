@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import Header from "../components/Header";
+// import Header from "../components/Header";
 import SubjectCard from "../components/SubjectCard";
 import "./Subjects.css";
 import mathImage from "../assets/subjects/math.jpeg";
@@ -13,7 +13,7 @@ import { faMagnifyingGlass, faBook } from "@fortawesome/free-solid-svg-icons";
 
 
 
-function Subjects({ onLogout }) {
+function Subjects() {
   const [subjects, setSubjects] = useState([]);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -55,7 +55,6 @@ function Subjects({ onLogout }) {
 
   return (
     <>
-      <Header isLoggedIn={true} onLogout={onLogout} />
 
       <div className="subjects-page">
         {error && <p style={{ color: "red" }}>{error}</p>}

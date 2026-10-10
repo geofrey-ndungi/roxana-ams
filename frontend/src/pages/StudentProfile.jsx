@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone, faEnvelope, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axios";
-import Header from "../components/Header";
+// import Header from "../components/Header";
 import "./StudentProfile.css";
 
 
@@ -69,7 +69,7 @@ function ProfileSkeleton() {
   );
 }
 
-function StudentProfile({ onLogout }) {
+function StudentProfile(  ) {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
   const [infoOpen, setInfoOpen] = useState(true);
@@ -139,7 +139,6 @@ function StudentProfile({ onLogout }) {
 
   return (
     <>
-      <Header isLoggedIn={true} onLogout={onLogout} />
 
       <div className="profile-bg">
         <div className="profile-page">
