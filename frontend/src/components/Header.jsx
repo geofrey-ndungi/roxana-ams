@@ -7,14 +7,14 @@ import "./Header.css";
 function Header({ isLoggedIn, onLogout }) {
   return (
     <header>
-      <div className="top-bar">
+      {/* <div className="top-bar">
         <span>
           <FontAwesomeIcon icon={faPhone} /> Call us: (+254) 700-000-000
         </span>
         <span>
           <FontAwesomeIcon icon={faEnvelope} /> Email: info@roxanaschool.ac.ke
         </span>
-      </div>
+      </div> */}
 
       <div className="main-bar">
         <div className="brand">
