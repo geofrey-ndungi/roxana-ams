@@ -10,7 +10,7 @@ from .permissions import IsAdminOrReadOnly, IsClassTeacherOrAdmin
 from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from django.utils import timezone
 
 
 
@@ -137,4 +137,112 @@ class MyProfileView(APIView):
             "attendance": attendance,
             "guardians": guardians,
             
+        })
+
+
+def count_by_status(queryset):
+    """Turns attendance rows into {"PRESENT": 28, "ABSENT": 2, ...}."""
+    counts = {"PRESENT": 0, "ABSENT": 0, "LATE": 0, "EXCUSED": 0}
+    for row in queryset.values("status").annotate(total=Count("id")):
+        counts[row["status"]] = row["total"]
+    return counts
+
+
+class TeacherDashboardView(APIView):
+    """Everything the teacher dashboard page needs, in one request."""
+
+    def get(self, request):
+        user = request.user
+
+        if user.role != "TEACHER":
+            return Response(
+                {"detail": "Only teachers can view this dashboard."},
+                status=403,
+            )
+
+        today = timezone.localdate()
+
+        # The parts of the answer that don't depend on having a class
+        base = {
+            "first_name": user.first_name or user.username,
+            "full_name": user.get_full_name() or user.username,
+            "photo": request.build_absolute_uri(user.photo.url) if user.photo else None,
+            "today": today,
+        }
+
+        # The class this teacher is in charge of
+        school_class = user.classes_taught.first()
+        if not school_class:
+            return Response({**base, "school_class": None})
+
+        # Use the active academic year, or the newest one if none is active
+        year = (
+            AcademicYear.objects.filter(is_active=True).first()
+            or AcademicYear.objects.first()
+        )
+
+        enrollments = (
+            Enrollment.objects.filter(school_class=school_class, academic_year=year)
+            .select_related("student")
+            .order_by("student__first_name", "student__username")
+        )
+
+        # Today's attendance
+        todays_records = Attendance.objects.filter(
+            enrollment__in=enrollments, date=today
+        )
+        status_by_enrollment = {r.enrollment_id: r.status for r in todays_records}
+        today_counts = count_by_status(todays_records)
+        marked_count = len(status_by_enrollment)
+
+        # Late students did come to school, so they count as attended.
+        attended = today_counts["PRESENT"] + today_counts["LATE"]
+        rate = round(attended / marked_count * 100, 1) if marked_count else None
+
+        # The last day BEFORE today that has any attendance records.
+        # (So Monday compares with Friday, not with an empty Sunday.)
+        previous_date = (
+            Attendance.objects.filter(enrollment__in=enrollments, date__lt=today)
+            .order_by("-date")
+            .values_list("date", flat=True)
+            .first()
+        )
+
+        previous = None
+        if previous_date:
+            previous = {
+                "date": previous_date,
+                "weekday": previous_date.strftime("%A"),
+                "counts": count_by_status(
+                    Attendance.objects.filter(
+                        enrollment__in=enrollments, date=previous_date
+                    )
+                ),
+            }
+
+        students = [
+            {
+                "enrollment_id": e.id,
+                "name": e.student.get_full_name() or e.student.username,
+                "photo": (
+                    request.build_absolute_uri(e.student.photo.url)
+                    if e.student.photo
+                    else None
+                ),
+                "status": status_by_enrollment.get(e.id),  # None = not marked
+            }
+            for e in enrollments
+        ]
+
+        return Response({
+            **base,
+            "school_class": school_class.name,
+            "academic_year": year.year if year else None,
+            "student_count": len(students),
+            "marked": marked_count > 0,
+            "marked_count": marked_count,
+            "counts": today_counts,
+            "rate": rate,
+            "previous": previous,
+            "students": students,
         })
