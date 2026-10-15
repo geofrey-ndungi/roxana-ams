@@ -48,6 +48,14 @@ const formatDayShort = (iso) =>
     timeZone: "UTC",
   });
 
+// "2026-10-15" becomes "Thu 15". Short enough to fit 7 labels in a row.
+const formatDayTiny = (iso) => {
+  const date = new Date(iso);
+  const weekday = date.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+  const day = date.toLocaleDateString("en-US", { day: "numeric", timeZone: "UTC" });
+  return `${weekday} ${day}`;
+};
+
 const getInitials = (name) => {
   if (!name) return "?";
   const parts = name.trim().split(" ");
@@ -97,40 +105,69 @@ function DashboardSkeleton() {
 
 // The line chart: Present and Absent for the previous day and today.
 // It is plain SVG. Every x and y position is worked out from the counts.
-function DayComparisonChart({ data }) {
-  const { previous, counts, marked, student_count, marked_count } = data;
-  const partial = marked && marked_count < student_count;
+// The line chart: Present and Absent over time.
+// "day" view compares the previous day with today.
+// "week" view shows the last 7 days that have attendance recorded.
+function ComparisonChart({ data, view }) {
+  const { previous, counts, marked, student_count, marked_count, history } = data;
+  const todayPartial = marked && marked_count < student_count;
 
-  if (!previous) {
-    return (
-      <p className="td-chart-empty">
-        There is no earlier day to compare with yet. Once attendance has been
-        recorded on another day, it will appear here.
-      </p>
-    );
-  }
+  // Build the list of points to draw. Each point is one day.
+  let points = [];
 
-  // The previous day is always drawn. Today is drawn only once
-  // some attendance has been recorded.
-  const points = [
-    {
-      label: formatDayShort(previous.date),
-      present: previous.counts.PRESENT,
-      absent: previous.counts.ABSENT,
-    },
-  ];
-  if (marked) {
-    points.push({
-      label: `${formatDayShort(data.today)}${partial ? " · Partial" : ""}`,
-      present: counts.PRESENT,
-      absent: counts.ABSENT,
-    });
+  if (view === "week") {
+    points = history.map((day) => ({
+      key: day.date,
+      label: formatDayTiny(day.date),
+      sub: day.date === data.today && todayPartial ? "Partial" : "",
+      present: day.counts.PRESENT,
+      absent: day.counts.ABSENT,
+    }));
+
+    if (points.length === 0) {
+      return (
+        <p className="td-chart-empty">
+          No attendance has been recorded yet. Once you save attendance, the
+          last 7 days will appear here.
+        </p>
+      );
+    }
+  } else {
+    if (!previous) {
+      return (
+        <p className="td-chart-empty">
+          There is no earlier day to compare with yet. Once attendance has been
+          recorded on another day, it will appear here.
+        </p>
+      );
+    }
+
+    points = [
+      {
+        key: previous.date,
+        label: formatDayShort(previous.date),
+        sub: "",
+        present: previous.counts.PRESENT,
+        absent: previous.counts.ABSENT,
+      },
+    ];
+
+    // Today is drawn only once some attendance has been recorded
+    if (marked) {
+      points.push({
+        key: data.today,
+        label: formatDayShort(data.today),
+        sub: todayPartial ? "Partial" : "",
+        present: counts.PRESENT,
+        absent: counts.ABSENT,
+      });
+    }
   }
 
   // Chart size and the empty space around the plotted area
   const W = 560;
-  const H = 240;
-  const pad = { left: 44, right: 64, top: 22, bottom: 46 };
+  const H = 256;
+  const pad = { left: 44, right: 64, top: 22, bottom: 62 };
   const plotW = W - pad.left - pad.right;
   const plotH = H - pad.top - pad.bottom;
 
@@ -141,10 +178,11 @@ function DayComparisonChart({ data }) {
   const ticks = [];
   for (let v = 0; v <= top; v += step) ticks.push(v);
 
+  // Spread the points evenly from 12% to 88% across the width
   const xFor = (i) =>
     points.length === 1
       ? pad.left + plotW / 2
-      : pad.left + plotW * (0.12 + 0.76 * i);
+      : pad.left + plotW * (0.12 + 0.76 * (i / (points.length - 1)));
   const yFor = (value) => pad.top + plotH * (1 - value / top);
 
   // "M x y L x y" is how SVG describes a line through points
@@ -153,15 +191,17 @@ function DayComparisonChart({ data }) {
       .map((p, i) => `${i === 0 ? "M" : "L"} ${xFor(i)} ${yFor(p[key])}`)
       .join(" ");
 
+  const todayIncluded = points.some((p) => p.key === data.today);
+
   return (
     <div>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="td-chart"
         role="img"
-        aria-label="Present and absent counts for the previous day and today"
+        aria-label="Present and absent counts over time"
       >
-        
+       
 
         {ticks.map((v) => (
           <g key={v}>
@@ -196,7 +236,7 @@ function DayComparisonChart({ data }) {
           const presentOnTop = p.present >= p.absent;
 
           return (
-            <g key={p.label}>
+            <g key={p.key}>
               <circle className="td-pt-absent" cx={x} cy={yFor(p.absent)} r="4" />
               <circle className="td-pt-present" cx={x} cy={yFor(p.present)} r="4" />
 
@@ -235,11 +275,21 @@ function DayComparisonChart({ data }) {
               <text
                 className="td-chart-xlabel"
                 x={x}
-                y={H - 10}
+                y={H - 26}
                 textAnchor="middle"
               >
                 {p.label}
               </text>
+              {p.sub && (
+                <text
+                  className="td-chart-sub"
+                  x={x}
+                  y={H - 12}
+                  textAnchor="middle"
+                >
+                  {p.sub}
+                </text>
+              )}
             </g>
           );
         })}
@@ -255,9 +305,13 @@ function DayComparisonChart({ data }) {
       </div>
 
       <p className="td-chart-note">
-        {!marked
+        {view === "week"
+          ? `Showing the last ${plural(points.length, "recorded day")}.${
+              todayIncluded ? "" : " Today hasn't been recorded yet."
+            }${todayPartial ? " Today's register is not yet complete." : ""}`
+          : !marked
           ? "Today's register hasn't been started."
-          : partial
+          : todayPartial
           ? "Today's register is not yet complete."
           : "Today's register is complete."}
       </p>
@@ -268,6 +322,7 @@ function DayComparisonChart({ data }) {
 function TeacherDashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [view, setView] = useState("day"); // "day" or "week"
 
   const loadDashboard = async () => {
     setError("");
@@ -520,11 +575,41 @@ function TeacherDashboard() {
         </div>
 
         <div className="td-card">
-          <h2 className="td-card-title">Day comparison</h2>
-          <div className="td-muted td-under-title">
-            Recorded counts · today and the previous day
+          <div className="td-chart-head">
+            <div>
+              <h2 className="td-card-title">
+                {view === "week" ? "Weekly comparison" : "Day comparison"}
+              </h2>
+              <div className="td-muted td-under-title">
+                {view === "week"
+                  ? "Recorded counts · last 7 recorded days"
+                  : "Recorded counts · today and the previous day"}
+              </div>
+            </div>
+
+            <div className="td-toggle" role="tablist" aria-label="Comparison range">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "day"}
+                className={`td-toggle-btn ${view === "day" ? "active" : ""}`}
+                onClick={() => setView("day")}
+              >
+                Day
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "week"}
+                className={`td-toggle-btn ${view === "week" ? "active" : ""}`}
+                onClick={() => setView("week")}
+              >
+                Week
+              </button>
+            </div>
           </div>
-          <DayComparisonChart data={data} />
+
+          <ComparisonChart data={data} view={view} />
         </div>
       </div>
 

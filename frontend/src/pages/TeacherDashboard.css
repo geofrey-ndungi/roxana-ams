@@ -332,6 +332,42 @@
   stroke: #e4e7ec;
   stroke-width: 1;
 }
+.td-chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.td-toggle {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 6px;
+  background: #eef0f3;
+  flex-shrink: 0;
+}
+
+.td-toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--td-muted);
+  cursor: pointer;
+}
+
+.td-toggle-btn.active {
+  background: #ffffff;
+  color: var(--td-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.td-chart-sub {
+  font-size: 10px;
+  fill: var(--td-warn);
+}
 
 .td-line-present {
   fill: none;
