@@ -22,7 +22,7 @@ function Login() {
     const response = await api.post("/token/", { username, password });
     localStorage.setItem("access_token", response.data.access);
     localStorage.setItem("refresh_token", response.data.refresh);
-    navigate("/subjects");
+    navigate("/");
   } catch (err) {
     setError("Invalid username or password");
     setUsername("");
