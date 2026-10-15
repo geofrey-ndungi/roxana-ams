@@ -6,8 +6,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Attendance from "./pages/Attendance";
 import StudentProfile from "./pages/StudentProfile";
 import AppLayout from "./components/AppLayout";
-
-
+import RoleHome from "./components/RoleHome";
+import TeacherDashboard from "./pages/TeacherDashboard";
 
 
 
@@ -38,7 +38,6 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Navigate to="/subjects" replace />} />
 
       {/* Pages that share the sidebar / header shell */}
       <Route
@@ -48,6 +47,8 @@ function App() {
           </ProtectedRoute>
         }
       >
+        <Route path="/" element={<RoleHome />} />
+        <Route path="/dashboard" element={<TeacherDashboard />} />
         <Route path="/subjects" element={<Subjects />} />
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/profile" element={<StudentProfile />} />

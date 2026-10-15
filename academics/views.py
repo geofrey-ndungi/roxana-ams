@@ -222,6 +222,35 @@ class TeacherDashboardView(APIView):
                 ),
             }
 
+
+        # The last 7 days that have attendance (including today, if recorded)
+        recent_dates = list(
+            Attendance.objects.filter(enrollment__in=enrollments, date__lte=today)
+            .order_by("-date")
+            .values_list("date", flat=True)
+            .distinct()[:7]
+        )
+
+        # Start every day at zero for each status, then fill in the real counts
+        history_by_date = {
+            d: {"PRESENT": 0, "ABSENT": 0, "LATE": 0, "EXCUSED": 0}
+            for d in recent_dates
+        }
+        rows = (
+            Attendance.objects.filter(
+                enrollment__in=enrollments, date__in=recent_dates
+            )
+            .values("date", "status")
+            .annotate(total=Count("id"))
+        )
+        for row in rows:
+            history_by_date[row["date"]][row["status"]] = row["total"]
+
+        history = [
+            {"date": d, "weekday": d.strftime("%A"), "counts": history_by_date[d]}
+            for d in sorted(recent_dates)  # oldest first, so the chart reads left to right
+        ]
+
         students = [
             {
                 "enrollment_id": e.id,
@@ -246,5 +275,6 @@ class TeacherDashboardView(APIView):
             "counts": today_counts,
             "rate": rate,
             "previous": previous,
+            "history": history,
             "students": students,
         })
