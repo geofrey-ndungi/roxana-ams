@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import api from "../api/axios";
 import Header from "./Header";
-import StudentSidebar from "./StudentSidebar";
+import Sidebar from "./Sidebar";
+import { studentNav, teacherNav } from "./navConfig";
 
 function AppLayout({ onLogout }) {
   const [user, setUser] = useState(null);
@@ -16,33 +17,45 @@ function AppLayout({ onLogout }) {
       } catch (err) {
         console.error(err);
       } finally {
-        setLoaded(true); // runs on success AND on failure
+        setLoaded(true);
       }
     };
 
     loadUser();
   }, []);
 
-  // Show nothing for a moment while we find out who is logged in.
   if (!loaded) return null;
 
-  // Students get the sidebar.
-  if (user?.role === "STUDENT") {
+  const role = user?.role;
+
+  // Students and teachers get a sidebar, each with their own links.
+  if (role === "STUDENT" || role === "TEACHER") {
+    const nav = role === "TEACHER" ? teacherNav : studentNav;
+    const subtitle =
+      role === "TEACHER" ? "Class Teacher" : user.school_class || "No class yet";
+
     return (
       <div className="app-shell">
-        <StudentSidebar user={user} onLogout={onLogout} />
+        <Sidebar
+          user={user}
+          subtitle={subtitle}
+          mainItems={nav.main}
+          schoolItems={nav.school}
+          sectionTitle={nav.sectionTitle}
+          onLogout={onLogout}
+        />
         <main className="app-main">
-          <Outlet />
+          <Outlet context={{ user }} />
         </main>
       </div>
     );
   }
 
-  // Everyone else keeps the top Header for now.
+  // Admins keep the top Header for now.
   return (
     <>
       <Header isLoggedIn={true} onLogout={onLogout} />
-      <Outlet />
+      <Outlet context={{ user }} />
     </>
   );
 }

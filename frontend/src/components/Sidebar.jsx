@@ -2,46 +2,25 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faTableCells,
-  faUser,
-  faBookOpen,
-  faClipboardCheck,
-  faCalendarDays,
-  faComment,
-  faBook,
-  faCircleQuestion,
   faRightFromBracket,
   faChevronLeft,
   faBars,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
-import logo from "../assets/logo3.jpg";
-import "./StudentSidebar.css";
+import logo from "../assets/logo2.jpg"; 
+import "./Sidebar.css";
 
-
-
-
-
-// navigations 
-const mainItems = [
-  { label: "Dashboard", icon: faTableCells, soon: true },
-  { label: "My Profile", icon: faUser, to: "/profile" },
-  { label: "Subjects", icon: faBookOpen, to: "/subjects" },
-  { label: "Attendance", icon: faClipboardCheck, soon: true },
-  { label: "Timetable", icon: faCalendarDays, soon: true },
-  { label: "Messages", icon: faComment, soon: true },
-];
-
-const schoolItems = [
-  { label: "Library", icon: faBook, soon: true },
-  { label: "Help", icon: faCircleQuestion, soon: true },
-];
-
-function StudentSidebar({ user, onLogout }) {
+function Sidebar({
+  user,
+  subtitle,
+  mainItems,
+  schoolItems = [],
+  sectionTitle,
+  onLogout,
+}) {
   const [collapsed, setCollapsed] = useState(false); // desktop: 240px or 72px
   const [mobileOpen, setMobileOpen] = useState(false); // phone: drawer open?
 
-  // Turns "Ian Mwangi" into "IM", used when there is no photo.
   const getInitials = (name) => {
     if (!name) return "?";
     const parts = name.trim().split(" ");
@@ -51,7 +30,6 @@ function StudentSidebar({ user, onLogout }) {
   };
 
   const renderItem = (item) => {
-    // A page that doesn't exist yet: not a link, just a greyed row.
     if (item.soon) {
       return (
         <span
@@ -66,7 +44,6 @@ function StudentSidebar({ user, onLogout }) {
       );
     }
 
-    // A real page. NavLink tells us when this link is the current page.
     return (
       <NavLink
         key={item.label}
@@ -83,7 +60,6 @@ function StudentSidebar({ user, onLogout }) {
 
   return (
     <>
-      {/* Phones only: slim bar with a menu button */}
       <div className="mobile-topbar">
         <img src={logo} alt="Roxana School" />
         <button
@@ -96,7 +72,6 @@ function StudentSidebar({ user, onLogout }) {
         </button>
       </div>
 
-      {/* Phones only: dark overlay behind the open drawer */}
       <div
         className={`sidebar-backdrop ${mobileOpen ? "visible" : ""}`}
         onClick={() => setMobileOpen(false)}
@@ -107,7 +82,6 @@ function StudentSidebar({ user, onLogout }) {
           mobileOpen ? "mobile-open" : ""
         }`}
       >
-        {/* White logo block */}
         <div className="sidebar-logo">
           <img src={logo} alt="Roxana School" />
           <button
@@ -128,14 +102,18 @@ function StudentSidebar({ user, onLogout }) {
           </button>
         </div>
 
-        {/* Links */}
         <nav className="sidebar-nav">
           {mainItems.map(renderItem)}
-          <div className="sidebar-section">My School</div>
-          {schoolItems.map(renderItem)}
+
+          {/* Only show the second group if this role has one */}
+          {schoolItems.length > 0 && (
+            <>
+              <div className="sidebar-section">{sectionTitle}</div>
+              {schoolItems.map(renderItem)}
+            </>
+          )}
         </nav>
 
-        {/* Student + logout, pinned to the bottom */}
         <div className="sidebar-user">
           <div className="sidebar-user-info">
             {user?.photo ? (
@@ -151,9 +129,7 @@ function StudentSidebar({ user, onLogout }) {
             )}
             <div className="sidebar-user-text sidebar-label">
               <div className="sidebar-user-name">{user?.full_name}</div>
-              <div className="sidebar-user-class">
-                {user?.school_class || "No class yet"}
-              </div>
+              <div className="sidebar-user-class">{subtitle}</div>
             </div>
           </div>
 
@@ -172,4 +148,4 @@ function StudentSidebar({ user, onLogout }) {
   );
 }
 
-export default StudentSidebar;
+export default Sidebar;
