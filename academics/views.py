@@ -175,9 +175,11 @@ class TeacherDashboardView(APIView):
         if not school_class:
             return Response({**base, "school_class": None})
 
-        # Use the active academic year, or the newest one if none is active
+        # The academic year that today falls inside. If the dates aren't
+        # filled in properly, fall back to the active one, then the newest.
         year = (
-            AcademicYear.objects.filter(is_active=True).first()
+            AcademicYear.objects.filter(start_date__lte=today, end_date__gte=today).first()
+            or AcademicYear.objects.filter(is_active=True).first()
             or AcademicYear.objects.first()
         )
 
