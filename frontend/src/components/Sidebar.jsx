@@ -1,13 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faRightFromBracket,
-  faChevronLeft,
-  faBars,
-  faXmark,
-} from "@fortawesome/free-solid-svg-icons";
-import logo from "../assets/logo2.jpg"; 
+import { LogOut, ChevronLeft, Menu, X } from "lucide-react";
+import logo from "../assets/logo2.jpg"; // keep the same file name you had before
 import "./Sidebar.css";
 
 function Sidebar({
@@ -21,6 +15,7 @@ function Sidebar({
   const [collapsed, setCollapsed] = useState(false); // desktop: 240px or 72px
   const [mobileOpen, setMobileOpen] = useState(false); // phone: drawer open?
 
+  // Turns "Ian Mwangi" into "IM", used when there is no photo.
   const getInitials = (name) => {
     if (!name) return "?";
     const parts = name.trim().split(" ");
@@ -30,6 +25,9 @@ function Sidebar({
   };
 
   const renderItem = (item) => {
+    const Icon = item.icon; // a capital letter tells React this is a component
+
+    // A page that doesn't exist yet: not a link, just a greyed row.
     if (item.soon) {
       return (
         <span
@@ -37,13 +35,14 @@ function Sidebar({
           className="nav-item nav-item-soon"
           title={`${item.label} (coming soon)`}
         >
-          <FontAwesomeIcon icon={item.icon} className="nav-icon" />
+          <Icon className="nav-icon" size={20} strokeWidth={1.75} />
           <span className="sidebar-label">{item.label}</span>
           <span className="soon-pill">Soon</span>
         </span>
       );
     }
 
+    // A real page. NavLink tells us when this link is the current page.
     return (
       <NavLink
         key={item.label}
@@ -52,7 +51,7 @@ function Sidebar({
         className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         onClick={() => setMobileOpen(false)}
       >
-        <FontAwesomeIcon icon={item.icon} className="nav-icon" />
+        <Icon className="nav-icon" size={20} strokeWidth={1.75} />
         <span className="sidebar-label">{item.label}</span>
       </NavLink>
     );
@@ -60,6 +59,7 @@ function Sidebar({
 
   return (
     <>
+      {/* Phones only: slim bar with a menu button */}
       <div className="mobile-topbar">
         <img src={logo} alt="Roxana School" />
         <button
@@ -68,10 +68,11 @@ function Sidebar({
           onClick={() => setMobileOpen(true)}
           aria-label="Open menu"
         >
-          <FontAwesomeIcon icon={faBars} />
+          <Menu size={20} strokeWidth={1.75} />
         </button>
       </div>
 
+      {/* Phones only: dark overlay behind the open drawer */}
       <div
         className={`sidebar-backdrop ${mobileOpen ? "visible" : ""}`}
         onClick={() => setMobileOpen(false)}
@@ -82,6 +83,7 @@ function Sidebar({
           mobileOpen ? "mobile-open" : ""
         }`}
       >
+        {/* White logo block */}
         <div className="sidebar-logo">
           <img src={logo} alt="Roxana School" />
           <button
@@ -90,7 +92,7 @@ function Sidebar({
             onClick={() => setCollapsed(!collapsed)}
             aria-label="Collapse or expand the sidebar"
           >
-            <FontAwesomeIcon icon={faChevronLeft} />
+            <ChevronLeft size={18} strokeWidth={1.75} />
           </button>
           <button
             type="button"
@@ -98,10 +100,11 @@ function Sidebar({
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
-            <FontAwesomeIcon icon={faXmark} />
+            <X size={20} strokeWidth={1.75} />
           </button>
         </div>
 
+        {/* Links */}
         <nav className="sidebar-nav">
           {mainItems.map(renderItem)}
 
@@ -114,6 +117,7 @@ function Sidebar({
           )}
         </nav>
 
+        {/* User and logout, pinned to the bottom */}
         <div className="sidebar-user">
           <div className="sidebar-user-info">
             {user?.photo ? (
@@ -140,7 +144,7 @@ function Sidebar({
             title="Log out"
             aria-label="Log out"
           >
-            <FontAwesomeIcon icon={faRightFromBracket} />
+            <LogOut size={18} strokeWidth={1.75} />
           </button>
         </div>
       </aside>
