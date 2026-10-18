@@ -7,7 +7,7 @@ import Attendance from "./pages/Attendance";
 import StudentProfile from "./pages/StudentProfile";
 import AppLayout from "./components/AppLayout";
 import RoleHome from "./components/RoleHome";
-import TeacherDashboard from "./pages/TeacherDashboard";
+import Dashboard from "./pages/Dashboard";
 
 
 
@@ -48,7 +48,7 @@ function App() {
         }
       >
         <Route path="/" element={<RoleHome />} />
-        <Route path="/dashboard" element={<TeacherDashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/subjects" element={<Subjects />} />
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/profile" element={<StudentProfile />} />

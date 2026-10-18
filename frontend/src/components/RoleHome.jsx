@@ -4,7 +4,9 @@ import { Navigate, useOutletContext } from "react-router-dom";
 function RoleHome() {
   const { user } = useOutletContext();
 
-  if (user?.role === "TEACHER") return <Navigate to="/dashboard" replace />;
+  if (user?.role === "ADMIN" || user?.role === "TEACHER") {
+    return <Navigate to="/dashboard" replace />;
+  }
   if (user?.role === "STUDENT") return <Navigate to="/profile" replace />;
   return <Navigate to="/subjects" replace />;
 }

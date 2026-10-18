@@ -3,7 +3,14 @@ import { Outlet } from "react-router-dom";
 import api from "../api/axios";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { studentNav, teacherNav } from "./navConfig";
+import { studentNav, teacherNav, adminNav } from "./navConfig";
+
+// Which sidebar links each role gets
+const navByRole = {
+  STUDENT: studentNav,
+  TEACHER: teacherNav,
+  ADMIN: adminNav,
+};
 
 function AppLayout({ onLogout }) {
   const [user, setUser] = useState(null);
@@ -27,12 +34,13 @@ function AppLayout({ onLogout }) {
   if (!loaded) return null;
 
   const role = user?.role;
+  const nav = navByRole[role];
 
-  // Students and teachers get a sidebar, each with their own links.
-  if (role === "STUDENT" || role === "TEACHER") {
-    const nav = role === "TEACHER" ? teacherNav : studentNav;
-    const subtitle =
-      role === "TEACHER" ? "Class Teacher" : user.school_class || "No class yet";
+  // Students, teachers and admins get a sidebar, each with their own links.
+  if (nav) {
+    let subtitle = user.school_class || "No class yet";
+    if (role === "TEACHER") subtitle = "Class Teacher";
+    if (role === "ADMIN") subtitle = "Administrator";
 
     return (
       <div className="app-shell">
@@ -51,7 +59,7 @@ function AppLayout({ onLogout }) {
     );
   }
 
-  // Admins keep the top Header for now.
+  // Any other role keeps the top Header for now.
   return (
     <>
       <Header isLoggedIn={true} onLogout={onLogout} />

@@ -7,6 +7,12 @@ import {
   MessageSquare,
   Library,
   CircleHelp,
+  GraduationCap,
+  Users,
+  DoorOpen,
+  CalendarRange,
+  Clock,
+  Mail,
 } from "lucide-react";
 
 // An item with a "to" is a real page. An item with soon: true is greyed out.
@@ -35,6 +41,22 @@ export const teacherNav = {
     { label: "Subjects", icon: BookOpen, to: "/subjects" },
     { label: "Timetable", icon: CalendarDays, soon: true },
     { label: "Messages", icon: MessageSquare, soon: true },
+  ],
+  sectionTitle: "",
+  school: [],
+};
+
+export const adminNav = {
+  main: [
+    { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
+    { label: "Attendance", icon: ClipboardCheck, soon: true },
+    { label: "Students", icon: GraduationCap, soon: true },
+    { label: "Teachers", icon: Users, soon: true },
+    { label: "Classes", icon: DoorOpen, soon: true },
+    { label: "Subjects", icon: BookOpen, to: "/subjects" },
+    { label: "Academic years", icon: CalendarRange, soon: true },
+    { label: "Timetable", icon: Clock, soon: true },
+    { label: "Messages", icon: Mail, soon: true },
   ],
   sectionTitle: "",
   school: [],
