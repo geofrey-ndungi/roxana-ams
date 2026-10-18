@@ -67,7 +67,18 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
+        user = self.request.user
         queryset = Enrollment.objects.select_related("student", "school_class")
+
+        # Who is allowed to see which enrollments
+        if user.role == "TEACHER":
+            queryset = queryset.filter(school_class__class_teacher=user)
+        elif user.role == "STUDENT":
+            queryset = queryset.filter(student=user)
+        elif user.role != "ADMIN":
+            queryset = queryset.none()  # any other role sees nothing
+
+        # Optional filters: /api/enrollments/?school_class=1&academic_year=2
         school_class = self.request.query_params.get("school_class")
         academic_year = self.request.query_params.get("academic_year")
 
