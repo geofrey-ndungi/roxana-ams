@@ -8,6 +8,7 @@ from .views import (AcademicYearViewSet,
                     AttendanceViewSet,
                     MyProfileView,
                     TeacherDashboardView,
+                    AdminDashboardView,
 )
 
 
@@ -24,4 +25,5 @@ router.register(r"attendance", AttendanceViewSet)
 urlpatterns = router.urls + [
     path("profile/me/", MyProfileView.as_view(), name="my-profile"),
     path("teacher/dashboard/", TeacherDashboardView.as_view(), name="teacher-dashboard"),
+    path("admin/dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
 ]

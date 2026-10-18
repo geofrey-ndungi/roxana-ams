@@ -14,6 +14,7 @@ from django.utils import timezone
 import datetime
 from django.db import transaction
 from rest_framework.decorators import action
+from accounts.models import User
 
 
 
@@ -381,4 +382,167 @@ class TeacherDashboardView(APIView):
             "previous": previous,
             "history": history,
             "students": students,
+        })
+
+
+
+def empty_counts():
+    return {"PRESENT": 0, "ABSENT": 0, "LATE": 0, "EXCUSED": 0}
+
+
+class AdminDashboardView(APIView):
+    """Whole-school numbers for the admin dashboard.
+
+    "Present rate" everywhere means (present + late) divided by the
+    students recorded, the same rule as the teacher dashboard."""
+
+    def get(self, request):
+        user = request.user
+
+        if user.role != "ADMIN":
+            return Response(
+                {"detail": "Only administrators can view this dashboard."},
+                status=403,
+            )
+
+        today = timezone.localdate()
+
+        # Same year rule as the teacher dashboard
+        year = (
+            AcademicYear.objects.filter(start_date__lte=today, end_date__gte=today).first()
+            or AcademicYear.objects.filter(is_active=True).first()
+            or AcademicYear.objects.first()
+        )
+
+        enrollments = (
+            Enrollment.objects.filter(academic_year=year)
+            if year
+            else Enrollment.objects.none()
+        )
+
+        classes = list(
+            SchoolClass.objects.select_related("class_teacher").order_by("name")
+        )
+
+        # How many students each class has this year: {class id: number}
+        students_per_class = {
+            row["school_class"]: row["total"]
+            for row in enrollments.values("school_class").annotate(total=Count("id"))
+        }
+
+        # Today's attendance, counted per class and per status
+        today_by_class = {}
+        today_rows = (
+            Attendance.objects.filter(enrollment__in=enrollments, date=today)
+            .values("enrollment__school_class", "status")
+            .annotate(total=Count("id"))
+        )
+        for row in today_rows:
+            counts = today_by_class.setdefault(
+                row["enrollment__school_class"], empty_counts()
+            )
+            counts[row["status"]] = row["total"]
+
+        # One row per class for the table, and running totals for the school
+        school_counts = empty_counts()
+        class_rows = []
+
+        for school_class in classes:
+            student_count = students_per_class.get(school_class.id, 0)
+            counts = today_by_class.get(school_class.id, empty_counts())
+            recorded = sum(counts.values())
+
+            if student_count == 0:
+                status = "NO_STUDENTS"
+            elif recorded == 0:
+                status = "NOT_MARKED"
+            elif recorded < student_count:
+                status = "PARTLY_RECORDED"
+            else:
+                status = "RECORDED"
+
+            attended = counts["PRESENT"] + counts["LATE"]
+            teacher = school_class.class_teacher
+
+            class_rows.append({
+                "id": school_class.id,
+                "name": school_class.name,
+                "teacher": (teacher.get_full_name() or teacher.username) if teacher else None,
+                "student_count": student_count,
+                "recorded": recorded,
+                "status": status,
+                "rate": round(attended / recorded * 100, 1) if recorded else None,
+            })
+
+            for key, value in counts.items():
+                school_counts[key] += value
+
+        total_students = sum(students_per_class.values())
+        total_recorded = sum(school_counts.values())
+        school_attended = school_counts["PRESENT"] + school_counts["LATE"]
+
+        # A class with no students can't record attendance, so it is left out
+        classes_with_students = [c for c in class_rows if c["student_count"] > 0]
+        classes_started = [c for c in classes_with_students if c["recorded"] > 0]
+        classes_missing = [c for c in classes_with_students if c["recorded"] == 0]
+        classes_without_teacher = [c for c in class_rows if c["teacher"] is None]
+
+        # The school's last 7 days that have attendance, for the trend chart
+        recent_dates = list(
+            Attendance.objects.filter(enrollment__in=enrollments, date__lte=today)
+            .order_by("-date")
+            .values_list("date", flat=True)
+            .distinct()[:7]
+        )
+
+        per_day = {d: empty_counts() for d in recent_dates}
+        day_rows = (
+            Attendance.objects.filter(enrollment__in=enrollments, date__in=recent_dates)
+            .values("date", "status")
+            .annotate(total=Count("id"))
+        )
+        for row in day_rows:
+            per_day[row["date"]][row["status"]] = row["total"]
+
+        trend = []
+        for day in sorted(recent_dates):  # oldest first
+            counts = per_day[day]
+            recorded = sum(counts.values())
+            attended = counts["PRESENT"] + counts["LATE"]
+            trend.append({
+                "date": day,
+                "weekday": day.strftime("%A"),
+                "recorded": recorded,
+                "rate": round(attended / recorded * 100, 1) if recorded else None,
+            })
+
+        return Response({
+            "today": today,
+            "academic_year": year.year if year else None,
+            "totals": {
+                "students": total_students,
+                "teachers": User.objects.filter(role="TEACHER", is_active=True).count(),
+                "classes": len(classes),
+                "subjects": Subject.objects.count(),
+            },
+            "attendance": {
+                "counts": school_counts,
+                "recorded": total_recorded,
+                "not_marked": total_students - total_recorded,
+                "rate": round(school_attended / total_recorded * 100, 1) if total_recorded else None,
+                "classes_total": len(classes_with_students),
+                "classes_recorded": len(classes_started),
+            },
+            "trend": trend,
+            "classes": class_rows,
+            "attention": {
+                "missing_attendance": [
+                    {"id": c["id"], "name": c["name"], "teacher": c["teacher"]}
+                    for c in classes_missing
+                ],
+                "no_teacher": [
+                    {"id": c["id"], "name": c["name"], "student_count": c["student_count"]}
+                    for c in classes_without_teacher
+                ],
+            },
         })
