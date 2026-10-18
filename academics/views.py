@@ -11,7 +11,9 @@ from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
-
+import datetime
+from django.db import transaction
+from rest_framework.decorators import action
 
 
 
@@ -82,7 +84,98 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
-    permission_classes= [IsClassTeacherOrAdmin] 
+    permission_classes = [IsClassTeacherOrAdmin]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Attendance.objects.select_related("enrollment")
+
+        # Who is allowed to see which records
+        if user.role == "TEACHER":
+            queryset = queryset.filter(enrollment__school_class__class_teacher=user)
+        elif user.role == "STUDENT":
+            queryset = queryset.filter(enrollment__student=user)
+        # An admin sees everything.
+
+        # Optional filters: /api/attendance/?date=2026-10-16&school_class=1
+        date = self.request.query_params.get("date")
+        school_class = self.request.query_params.get("school_class")
+
+        if date:
+            queryset = queryset.filter(date=date)
+        if school_class:
+            queryset = queryset.filter(enrollment__school_class_id=school_class)
+
+        return queryset
+
+    @action(detail=False, methods=["post"], url_path="bulk")
+    def bulk(self, request):
+        """Saves a whole day's attendance at once: new rows are created,
+        rows that already exist are updated."""
+        user = request.user
+        raw_date = request.data.get("date")
+        records = request.data.get("records")
+
+        if not raw_date or not isinstance(records, list) or not records:
+            return Response(
+                {"detail": "A date and a list of records are required."},
+                status=400,
+            )
+
+        try:
+            day = datetime.date.fromisoformat(raw_date)
+        except (TypeError, ValueError):
+            return Response({"detail": "The date must look like 2026-10-16."}, status=400)
+
+        if day > timezone.localdate():
+            return Response(
+                {"detail": "You can't record attendance for a future date."},
+                status=400,
+            )
+
+        # Check every record before saving anything
+        valid_statuses = {value for value, _ in Attendance.Status.choices}
+        for record in records:
+            if not isinstance(record, dict) or record.get("status") not in valid_statuses:
+                return Response(
+                    {"detail": "Every record needs an enrollment and a valid status."},
+                    status=400,
+                )
+
+        enrollments = Enrollment.objects.select_related("school_class").in_bulk(
+            [record.get("enrollment") for record in records]
+        )
+
+        for record in records:
+            enrollment = enrollments.get(record.get("enrollment"))
+            if enrollment is None:
+                return Response({"detail": "One of the students was not found."}, status=400)
+
+            # A teacher can only save attendance for their own class
+            if user.role == "TEACHER" and enrollment.school_class.class_teacher_id != user.id:
+                return Response(
+                    {"detail": "You can only record attendance for your own class."},
+                    status=403,
+                )
+
+        # All or nothing: if anything fails, none of it is saved
+        with transaction.atomic():
+            for record in records:
+                Attendance.objects.update_or_create(
+                    enrollment_id=record["enrollment"],
+                    date=day,
+                    defaults={
+                        "status": record["status"],
+                        "reason": (
+                            (record.get("reason") or "")[:255]
+                            if record["status"] == "EXCUSED"
+                            else ""
+                        ),
+                        "recorded_by": user,
+                    },
+                )
+
+        return Response({"saved": len(records)}) 
 
 
 

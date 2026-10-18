@@ -36,6 +36,10 @@ class IsClassTeacherOrAdmin(permissions.BasePermission):
 
         if request.user.role == "ADMIN":
             return True
+        
+        # The bulk save checks every enrollment itself, inside the view
+        if getattr(view, "action", None) == "bulk":
+            return request.user.role == "TEACHER"
 
         if request.method == "POST" and request.user.role == "TEACHER":
             enrollment_id = request.data.get("enrollment")
