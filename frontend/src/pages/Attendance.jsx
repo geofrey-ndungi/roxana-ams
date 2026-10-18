@@ -26,6 +26,10 @@ const statTiles = [
   { key: "EXCUSED", label: "Excused", dot: "at-dot-excused" },
 ];
 
+// Today as "2026-10-16", using this computer's own date.
+// ("en-CA" is the format that writes dates in that order.)
+const getToday = () => new Date().toLocaleDateString("en-CA");
+
 // Turns "Maya Lin" into "ML", for the round avatar.
 const getInitials = (name) => {
   if (!name) return "?";
@@ -39,15 +43,20 @@ function Attendance() {
   const [schoolClass, setSchoolClass] = useState(null);
   const [students, setStudents] = useState([]);
   const [error, setError] = useState("");
-  // "en-CA" writes dates as 2026-10-16, and uses this computer's own date.
-  const [date, setDate] = useState(new Date().toLocaleDateString("en-CA"));
+  const [date, setDate] = useState(getToday);
   const [records, setRecords] = useState({});
+  const [savedCount, setSavedCount] = useState(0); // how many already saved for this date
+  const [loadingDay, setLoadingDay] = useState(false);
+  const [dayError, setDayError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [saveFailed, setSaveFailed] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const dateInputRef = useRef(null);
 
+  const today = getToday();
+
+  // 1. Load the teacher's class and its students (once)
   useEffect(() => {
     const loadClassAndStudents = async () => {
       try {
@@ -81,6 +90,60 @@ function Attendance() {
     loadClassAndStudents();
   }, []);
 
+  // 2. Every time the date changes, load what was already saved for that day
+  useEffect(() => {
+    if (!schoolClass || students.length === 0) return;
+
+    // If the teacher clicks through dates quickly, an older answer can arrive
+    // after a newer one. "cancelled" makes the older answer get ignored.
+    let cancelled = false;
+
+    const loadDay = async () => {
+      setLoadingDay(true);
+      setDayError("");
+
+      try {
+        const response = await api.get(
+          `/attendance/?date=${date}&school_class=${schoolClass.id}`
+        );
+        if (cancelled) return;
+
+        // Start everyone as Present, then lay the saved records on top
+        const next = {};
+        students.forEach((enrollment) => {
+          next[enrollment.id] = { status: "PRESENT", reason: "" };
+        });
+
+        let found = 0;
+        response.data.forEach((record) => {
+          if (next[record.enrollment]) {
+            next[record.enrollment] = {
+              status: record.status,
+              reason: record.reason || "",
+            };
+            found += 1;
+          }
+        });
+
+        setRecords(next);
+        setSavedCount(found);
+      } catch (err) {
+        if (cancelled) return;
+        setDayError("Couldn't load the saved attendance for this date.");
+        console.error(err);
+      } finally {
+        if (!cancelled) setLoadingDay(false);
+      }
+    };
+
+    loadDay();
+
+    // React runs this when the date changes again, before the next load
+    return () => {
+      cancelled = true;
+    };
+  }, [date, schoolClass, students]);
+
   const updateRecord = (enrollmentId, field, value) => {
     setRecords((prev) => ({
       ...prev,
@@ -102,20 +165,26 @@ function Attendance() {
     setSaving(true);
 
     try {
-      for (const enrollment of students) {
-        const record = records[enrollment.id];
+      // One request for the whole day. The server creates new records
+      // and updates the ones that already exist.
+      await api.post("/attendance/bulk/", {
+        date,
+        records: students.map((enrollment) => {
+          const record = records[enrollment.id];
+          return {
+            enrollment: enrollment.id,
+            status: record.status,
+            reason: record.status === "EXCUSED" ? record.reason : "",
+          };
+        }),
+      });
 
-        await api.post("/attendance/", {
-          enrollment: enrollment.id,
-          date: date,
-          status: record.status,
-          reason: record.status === "EXCUSED" ? record.reason : "",
-        });
-      }
-
+      setSavedCount(students.length);
       showToast(`Attendance saved for ${schoolClass?.name || "class"}`, false);
     } catch (err) {
-      showToast("Failed to save attendance. Please try again.", true);
+      // Show the server's own message when it sent one
+      const detail = err.response?.data?.detail;
+      showToast(detail || "Failed to save attendance. Please try again.", true);
       console.error(err);
     } finally {
       setSaving(false);
@@ -158,14 +227,27 @@ function Attendance() {
     return `${count} ${count === 1 ? "student" : "students"}`;
   };
 
+  let footerText = "Select a status for every student";
+  if (allMarked) {
+    footerText =
+      savedCount > 0
+        ? `Saved earlier. Saving updates ${prettyDate}`
+        : `Ready to save for ${prettyDate}`;
+  }
+
   return (
     <div className="at-bg">
-      <div className={`at-toast ${saveFailed ? "at-toast-error" : ""} ${toastVisible ? "visible" : ""}`}>
+      <div
+        className={`at-toast ${saveFailed ? "at-toast-error" : ""} ${
+          toastVisible ? "visible" : ""
+        }`}
+      >
         {saveMessage}
       </div>
 
       <div className="at-page">
         {error && <p className="at-error">{error}</p>}
+        {dayError && <p className="at-error">{dayError}</p>}
 
         {/* Title and date */}
         <div className="at-top">
@@ -196,13 +278,16 @@ function Attendance() {
               ref={dateInputRef}
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              max={today}
+              onChange={(e) => e.target.value && setDate(e.target.value)}
               className="at-date-input"
             />
 
+            {/* You can't go past today: attendance can't be recorded in advance */}
             <button
               type="button"
               className="at-date-arrow"
+              disabled={date >= today}
               onClick={(e) => {
                 e.stopPropagation();
                 changeDateBy(1);
@@ -243,11 +328,20 @@ function Attendance() {
         </div>
 
         {/* The class register */}
-        <div className="at-card at-register">
+        <div className={`at-card at-register ${loadingDay ? "at-loading" : ""}`}>
           <div className="at-register-head">
             <div className="at-register-title">
               Class register
               <span className="at-count">{students.length}</span>
+              {savedCount > 0 && (
+                <span
+                  className={`at-tag ${
+                    savedCount < students.length ? "at-tag-warn" : "at-tag-ok"
+                  }`}
+                >
+                  {savedCount < students.length ? "Partly saved" : "Saved"}
+                </span>
+              )}
             </div>
             <span className="at-hint">Select a status for each student</span>
           </div>
@@ -344,11 +438,7 @@ function Attendance() {
                 <div className="at-foot-title">
                   {markedCount} of {students.length} marked
                 </div>
-                <div className="at-foot-sub">
-                  {allMarked
-                    ? `Ready to save for ${prettyDate}`
-                    : "Select a status for every student"}
-                </div>
+                <div className="at-foot-sub">{footerText}</div>
               </div>
             </div>
 
@@ -356,10 +446,14 @@ function Attendance() {
               type="button"
               className="at-save"
               onClick={handleSave}
-              disabled={saving || students.length === 0}
+              disabled={saving || loadingDay || students.length === 0}
             >
               <FontAwesomeIcon icon={faFloppyDisk} />
-              {saving ? "Saving..." : "Save Attendance"}
+              {saving
+                ? "Saving..."
+                : savedCount > 0
+                ? "Update Attendance"
+                : "Save Attendance"}
             </button>
           </div>
         </div>

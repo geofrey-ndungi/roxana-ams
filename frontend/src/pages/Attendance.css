@@ -195,6 +195,35 @@
 .at-dot-late { background: var(--at-late); }
 .at-dot-excused { background: var(--at-excused); }
 
+.at-tag {
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.at-tag-ok {
+  background: var(--at-present-bg);
+  color: var(--at-present);
+}
+
+.at-tag-warn {
+  background: #fdf3dc;
+  color: #8a5a00;
+}
+
+/* The register fades a little while a day is loading */
+.at-loading .at-rows {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.at-date-arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* Register */
 .at-register {
   margin-bottom: 1rem;
