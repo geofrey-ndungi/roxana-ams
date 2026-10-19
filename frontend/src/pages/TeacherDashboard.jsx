@@ -103,12 +103,22 @@ function DashboardSkeleton() {
   );
 }
 
-// The line chart: Present and Absent for the previous day and today.
-// It is plain SVG. Every x and y position is worked out from the counts.
+// What the hover box shows for each day. To add Late, add one more line here.
+const tooltipRows = [
+  { key: "PRESENT", label: "Present", dot: "td-dot-present" },
+  { key: "ABSENT", label: "Absent", dot: "td-dot-absent" },
+  { key: "LATE", label: "Late", dot: "td-dot-late" },
+  { key: "EXCUSED", label: "Excused", dot: "td-dot-excused" },
+];
+
 // The line chart: Present and Absent over time.
 // "day" view compares the previous day with today.
 // "week" view shows the last 7 days that have attendance recorded.
 function ComparisonChart({ data, view }) {
+  // Which day the mouse is on (0 = the first day). null = none.
+  // Hooks go first, before any "return", so React runs them in the same order every time.
+  const [hovered, setHovered] = useState(null);
+
   const { previous, counts, marked, student_count, marked_count, history } = data;
   const todayPartial = marked && marked_count < student_count;
 
@@ -122,6 +132,7 @@ function ComparisonChart({ data, view }) {
       sub: day.date === data.today && todayPartial ? "Partial" : "",
       present: day.counts.PRESENT,
       absent: day.counts.ABSENT,
+      counts: day.counts,
     }));
 
     if (points.length === 0) {
@@ -149,6 +160,7 @@ function ComparisonChart({ data, view }) {
         sub: "",
         present: previous.counts.PRESENT,
         absent: previous.counts.ABSENT,
+        counts: previous.counts,
       },
     ];
 
@@ -160,6 +172,7 @@ function ComparisonChart({ data, view }) {
         sub: todayPartial ? "Partial" : "",
         present: counts.PRESENT,
         absent: counts.ABSENT,
+        counts: counts,
       });
     }
   }
@@ -193,107 +206,203 @@ function ComparisonChart({ data, view }) {
 
   const todayIncluded = points.some((p) => p.key === data.today);
 
+  // The day the mouse is on, and where to put the box.
+  // The box is placed with percentages, so it follows the chart when it shrinks.
+  const active = hovered !== null ? points[hovered] : null;
+  let tooltipStyle = {};
+
+  if (active) {
+    const leftPct = (xFor(hovered) / W) * 100;
+    const highY = Math.min(yFor(active.present), yFor(active.absent));
+    const lowY = Math.max(yFor(active.present), yFor(active.absent));
+
+    // Dots near the top of the chart: put the box underneath them instead
+    const below = highY / H < 0.4;
+
+    // Near the left or right edge, slide the box sideways so it isn't cut off
+    const shift = leftPct < 20 ? "-15%" : leftPct > 80 ? "-85%" : "-50%";
+
+    tooltipStyle = {
+      left: `${leftPct}%`,
+      top: `${((below ? lowY : highY) / H) * 100}%`,
+      transform: below
+        ? `translate(${shift}, 16px)`
+        : `translate(${shift}, calc(-100% - 16px))`,
+    };
+  }
+
   return (
     <div>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="td-chart"
-        role="img"
-        aria-label="Present and absent counts over time"
-      >
-       
+      <div className="td-chart-wrap">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="td-chart"
+          role="img"
+          aria-label="Present and absent counts over time"
+        >
+          <text className="td-chart-axis-title" x={pad.left} y={12}>
+            Recorded count
+          </text>
 
-        {ticks.map((v) => (
-          <g key={v}>
-            <line
-              className="td-chart-grid"
-              x1={pad.left}
-              x2={W - pad.right}
-              y1={yFor(v)}
-              y2={yFor(v)}
-            />
-            <text
-              className="td-chart-tick"
-              x={pad.left - 10}
-              y={yFor(v) + 4}
-              textAnchor="end"
-            >
-              {v}
-            </text>
-          </g>
-        ))}
-
-        {points.length > 1 && (
-          <>
-            <path className="td-line-absent" d={linePath("absent")} />
-            <path className="td-line-present" d={linePath("present")} />
-          </>
-        )}
-
-        {points.map((p, i) => {
-          const x = xFor(i);
-          const same = p.present === p.absent;
-          const presentOnTop = p.present >= p.absent;
-
-          return (
-            <g key={p.key}>
-              <circle className="td-pt-absent" cx={x} cy={yFor(p.absent)} r="4" />
-              <circle className="td-pt-present" cx={x} cy={yFor(p.present)} r="4" />
-
-              {same ? (
-                <text
-                  className="td-chart-value"
-                  x={x}
-                  y={yFor(p.present) - 10}
-                  textAnchor="middle"
-                >
-                  {p.present} each
-                </text>
-              ) : (
-                <>
-                  {/* The higher value goes above its point, the lower below,
-                      so the two numbers never sit on top of each other. */}
-                  <text
-                    className="td-chart-value"
-                    x={x}
-                    y={yFor(p.present) + (presentOnTop ? -10 : 16)}
-                    textAnchor="middle"
-                  >
-                    {p.present}
-                  </text>
-                  <text
-                    className="td-chart-value"
-                    x={x}
-                    y={yFor(p.absent) + (presentOnTop ? 16 : -10)}
-                    textAnchor="middle"
-                  >
-                    {p.absent}
-                  </text>
-                </>
-              )}
-
+          {ticks.map((v) => (
+            <g key={v}>
+              <line
+                className="td-chart-grid"
+                x1={pad.left}
+                x2={W - pad.right}
+                y1={yFor(v)}
+                y2={yFor(v)}
+              />
               <text
-                className="td-chart-xlabel"
-                x={x}
-                y={H - 26}
-                textAnchor="middle"
+                className="td-chart-tick"
+                x={pad.left - 10}
+                y={yFor(v) + 4}
+                textAnchor="end"
               >
-                {p.label}
+                {v}
               </text>
-              {p.sub && (
+            </g>
+          ))}
+
+          {points.length > 1 && (
+            <>
+              <path className="td-line-absent" d={linePath("absent")} />
+              <path className="td-line-present" d={linePath("present")} />
+            </>
+          )}
+
+          {points.map((p, i) => {
+            const x = xFor(i);
+            const same = p.present === p.absent;
+            const presentOnTop = p.present >= p.absent;
+            const isActive = hovered === i;
+
+            // Mouse handlers, shared by both invisible hover targets below
+            const hoverProps = {
+              onMouseEnter: () => setHovered(i),
+              onMouseLeave: () => setHovered(null),
+            };
+
+            return (
+              <g key={p.key}>
+                {isActive && (
+                  <line
+                    className="td-guide"
+                    x1={x}
+                    x2={x}
+                    y1={pad.top}
+                    y2={pad.top + plotH}
+                  />
+                )}
+
+                <circle
+                  className={`td-pt-absent ${isActive ? "td-pt-active" : ""}`}
+                  cx={x}
+                  cy={yFor(p.absent)}
+                  r="4"
+                />
+                <circle
+                  className={`td-pt-present ${isActive ? "td-pt-active" : ""}`}
+                  cx={x}
+                  cy={yFor(p.present)}
+                  r="4"
+                />
+
+                {same ? (
+                  <text
+                    className="td-chart-value"
+                    x={x}
+                    y={yFor(p.present) - 10}
+                    textAnchor="middle"
+                  >
+                    {p.present} each
+                  </text>
+                ) : (
+                  <>
+                    {/* The higher value goes above its point, the lower below,
+                        so the two numbers never sit on top of each other. */}
+                    <text
+                      className="td-chart-value"
+                      x={x}
+                      y={yFor(p.present) + (presentOnTop ? -10 : 16)}
+                      textAnchor="middle"
+                    >
+                      {p.present}
+                    </text>
+                    <text
+                      className="td-chart-value"
+                      x={x}
+                      y={yFor(p.absent) + (presentOnTop ? 16 : -10)}
+                      textAnchor="middle"
+                    >
+                      {p.absent}
+                    </text>
+                  </>
+                )}
+
                 <text
-                  className="td-chart-sub"
+                  className="td-chart-xlabel"
                   x={x}
-                  y={H - 12}
+                  y={H - 26}
                   textAnchor="middle"
                 >
-                  {p.sub}
+                  {p.label}
                 </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
+                {p.sub && (
+                  <text
+                    className="td-chart-sub"
+                    x={x}
+                    y={H - 12}
+                    textAnchor="middle"
+                  >
+                    {p.sub}
+                  </text>
+                )}
+
+                {/* Invisible, bigger circles on top: an easy target for the mouse.
+                    The present one can also be reached with the Tab key. */}
+                <circle
+                  className="td-hit"
+                  cx={x}
+                  cy={yFor(p.absent)}
+                  r="14"
+                  {...hoverProps}
+                />
+                <circle
+                  className="td-hit"
+                  cx={x}
+                  cy={yFor(p.present)}
+                  r="14"
+                  tabIndex={0}
+                  aria-label={`${formatDayLong(p.key)}: ${p.counts.PRESENT} present, ${p.counts.ABSENT} absent, ${p.counts.EXCUSED} excused`}
+                  onFocus={() => setHovered(i)}
+                  onBlur={() => setHovered(null)}
+                  {...hoverProps}
+                />
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* The hover box */}
+        {active && (
+          <div className="td-tooltip" style={tooltipStyle} role="tooltip">
+            <div className="td-tooltip-title">
+              {formatDayLong(active.key)}
+              {active.sub && <span className="td-tooltip-tag">{active.sub}</span>}
+            </div>
+            {tooltipRows.map((row) => (
+              <div className="td-tooltip-row" key={row.key}>
+                <span className="td-tooltip-label">
+                  <span className={`td-dot ${row.dot}`}></span>
+                  {row.label}
+                </span>
+                <span className="td-tooltip-value">{active.counts[row.key]}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="td-legend">
         <span>
@@ -319,10 +428,11 @@ function ComparisonChart({ data, view }) {
   );
 }
 
+
 function TeacherDashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  const [view, setView] = useState("day"); // "day" or "week"
+  const [view, setView] = useState("week"); // "day" or "week"
 
   const loadDashboard = async () => {
     setError("");
@@ -609,7 +719,7 @@ function TeacherDashboard() {
             </div>
           </div>
 
-          <ComparisonChart data={data} view={view} />
+          <ComparisonChart key={view} data={data} view={view} />
         </div>
       </div>
 
