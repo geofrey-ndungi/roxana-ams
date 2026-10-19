@@ -23,7 +23,7 @@ export const studentNav = {
     { label: "Dashboard", icon: LayoutDashboard, soon: true },
     { label: "My Profile", icon: User, to: "/profile" },
     { label: "Subjects", icon: BookOpen, to: "/subjects" },
-    { label: "Attendance", icon: ClipboardCheck, soon: true },
+    { label: "Attendance", icon: ClipboardCheck, to: "/my-attendance" },
     { label: "Timetable", icon: CalendarDays, soon: true },
     { label: "Messages", icon: MessageSquare, soon: true },
   ],

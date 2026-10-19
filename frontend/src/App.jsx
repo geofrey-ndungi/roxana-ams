@@ -8,6 +8,7 @@ import StudentProfile from "./pages/StudentProfile";
 import AppLayout from "./components/AppLayout";
 import RoleHome from "./components/RoleHome";
 import Dashboard from "./pages/Dashboard";
+import MyAttendance from "./pages/MyAttendance";
 
 
 
@@ -52,6 +53,8 @@ function App() {
         <Route path="/subjects" element={<Subjects />} />
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/profile" element={<StudentProfile />} />
+        <Route path="/my-attendance" element={<MyAttendance />} />
+        
       </Route>
     </Routes>
   );
