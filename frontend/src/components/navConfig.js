@@ -7,7 +7,7 @@ import {
   MessageSquare,
   Library,
   CircleHelp,
-  GraduationCap,
+  UserGroup,
   Users,
   DoorOpen,
   CalendarRange,
@@ -50,7 +50,7 @@ export const adminNav = {
   main: [
     { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
     { label: "Attendance", icon: ClipboardCheck, soon: true },
-    { label: "Students", icon: GraduationCap, soon: true },
+    { label: "Students", icon: UserGroup, soon: true },
     { label: "Teachers", icon: Users, soon: true },
     { label: "Classes", icon: DoorOpen, soon: true },
     { label: "Subjects", icon: BookOpen, to: "/subjects" },
