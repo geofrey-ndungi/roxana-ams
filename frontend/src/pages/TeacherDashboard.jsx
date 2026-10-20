@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Download,
   ClipboardCheck,
@@ -808,7 +807,7 @@ function TeacherDashboard() {
 
           {unmarkedStudents.length === 0 && absentStudents.length === 0 ? (
             <p className="td-clear">
-              <FontAwesomeIcon icon={faCircleCheck} /> Nothing needs attention
+              <CircleCheck size={16} strokeWidth={1.75} /> Nothing needs attention
               right now.
             </p>
           ) : (
