@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faDownload,
-  faClipboardCheck,
-  faArrowUpRightFromSquare,
-  faArrowRight,
-  faTriangleExclamation,
-  faCircleCheck,
-  faDoorOpen,
-  faRotateRight,
-} from "@fortawesome/free-solid-svg-icons";
+  Download,
+  ClipboardCheck,
+  ExternalLink,
+  ArrowRight,
+  TriangleAlert,
+  CircleCheck,
+  DoorOpen,
+  RotateCw,
+} from "lucide-react";
 import api from "../api/axios";
 import "./TeacherDashboard.css";
 
@@ -478,7 +478,7 @@ function TeacherDashboard() {
       <DashboardShell>
         <div className="td-card td-noclass">
           <div className="td-empty-icon">
-            <FontAwesomeIcon icon={faDoorOpen} />
+            <DoorOpen size={24} strokeWidth={1.5} />
           </div>
           <h2 className="td-card-title">No class assigned yet</h2>
           <p className="td-empty-text">
@@ -486,7 +486,7 @@ function TeacherDashboard() {
             administrator.
           </p>
           <button type="button" className="td-btn td-btn-light" onClick={loadDashboard}>
-            <FontAwesomeIcon icon={faRotateRight} />
+            <RotateCw size={16} strokeWidth={1.75} />
             <span>Check again</span>
           </button>
         </div>
@@ -602,11 +602,11 @@ function TeacherDashboard() {
 
         <div className="td-actions">
           <button type="button" className="td-btn td-btn-light" onClick={exportReport}>
-            <FontAwesomeIcon icon={faDownload} />
+            <Download size={16} strokeWidth={1.75} />
             <span>Export report</span>
           </button>
           <Link to="/attendance" className="td-btn td-btn-dark">
-            <FontAwesomeIcon icon={faClipboardCheck} />
+            <ClipboardCheck size={16} strokeWidth={1.75} />
             <span>{fullyMarked ? "Edit attendance" : "Mark attendance"}</span>
           </Link>
         </div>
@@ -671,7 +671,11 @@ function TeacherDashboard() {
           </div>
 
           <div className={`td-notice ${fullyMarked ? "td-notice-ok" : ""}`}>
-            <FontAwesomeIcon icon={fullyMarked ? faCircleCheck : faTriangleExclamation} />
+            {fullyMarked ? (
+  <CircleCheck size={16} strokeWidth={1.75} />
+) : (
+  <TriangleAlert size={16} strokeWidth={1.75} />
+)}
             <span>
               {fullyMarked
                 ? "Register complete. Today's totals include every student."
@@ -782,7 +786,7 @@ function TeacherDashboard() {
                         <td>
                           <Link to="/attendance" className="td-action">
                             {student.status ? "View record" : "Mark status"}
-                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                            <ExternalLink size={12} strokeWidth={1.75} />
                           </Link>
                         </td>
                       </tr>
@@ -818,7 +822,7 @@ function TeacherDashboard() {
                     {listNames(unmarkedStudents)} · Not marked
                   </div>
                   <Link to="/attendance" className="td-attention-link">
-                    Open attendance <FontAwesomeIcon icon={faArrowRight} />
+                    Open attendance <ExternalLink size={12} strokeWidth={1.75} />
                   </Link>
                 </div>
               )}

@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPhone, faEnvelope, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { Phone, Mail, ChevronDown } from "lucide-react";
 import api from "../api/axios";
 // import Header from "../components/Header";
 import "./StudentProfile.css";
-
-
-
 
 // The ring is an SVG circle with radius 40. Its edge length
 // (circumference) is 2 * pi * 40, about 251. We "draw" part of
@@ -69,7 +65,7 @@ function ProfileSkeleton() {
   );
 }
 
-function StudentProfile(  ) {
+function StudentProfile() {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
   const [infoOpen, setInfoOpen] = useState(true);
@@ -125,8 +121,7 @@ function StudentProfile(  ) {
     });
   };
 
-
-   // One entry per row in the Personal Information card.
+  // One entry per row in the Personal Information card.
   const infoRows = profile
     ? [
         { label: "Name", value: profile.full_name },
@@ -139,7 +134,6 @@ function StudentProfile(  ) {
 
   return (
     <>
-
       <div className="profile-bg">
         <div className="profile-page">
           {error && <p className="profile-error">{error}</p>}
@@ -181,35 +175,38 @@ function StudentProfile(  ) {
                 </div>
 
                 {/* Personal Information (dropdown) */}
-            <div className="profile-card">
-              <button
-                type="button"
-                className="info-toggle"
-                onClick={() => setInfoOpen(!infoOpen)}
-                aria-expanded={infoOpen}
-              >
-                <span className="profile-card-title">Personal Information</span>
-                <FontAwesomeIcon
-                  icon={faChevronDown}
-                  className={`info-chevron ${infoOpen ? "open" : ""}`}
-                />
-              </button>
+                <div className="profile-card">
+                  <button
+                    type="button"
+                    className="info-toggle"
+                    onClick={() => setInfoOpen(!infoOpen)}
+                    aria-expanded={infoOpen}
+                  >
+                    <span className="profile-card-title">
+                      Personal Information
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      strokeWidth={1.75}
+                      className={`info-chevron ${infoOpen ? "open" : ""}`}
+                    />
+                  </button>
 
-              {infoOpen && (
-                <div className="info-grid">
-                  {infoRows.map((row) => (
-                    <div key={row.label}>
-                      <div className="info-label">{row.label}</div>
-                      <div
-                        className={`info-value ${row.value ? "" : "info-empty"}`}
-                      >
-                        {row.value || "Not provided"}
-                      </div>
+                  {infoOpen && (
+                    <div className="info-grid">
+                      {infoRows.map((row) => (
+                        <div key={row.label}>
+                          <div className="info-label">{row.label}</div>
+                          <div
+                            className={`info-value ${row.value ? "" : "info-empty"}`}
+                          >
+                            {row.value || "Not provided"}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
               </div>
 
               {/* Attendance */}
@@ -225,38 +222,37 @@ function StudentProfile(  ) {
                 </div>
 
                 <div className="attendance-layout">
-<div className="ring-panel">
-  <div className="ring-wrap">
-    <svg viewBox="0 0 100 100">
-      <circle
-        className="ring-track"
-        cx="50"
-        cy="50"
-        r="40"
-        fill="transparent"
-        strokeWidth="7"
-      />
-      <circle
-        className={`ring-fill ${rateIsLow ? "ring-low" : ""}`}
-        cx="50"
-        cy="50"
-        r="40"
-        fill="transparent"
-        strokeWidth="7"
-        strokeLinecap="round"
-        strokeDasharray={RING_CIRCUMFERENCE}
-        style={{ '--stroke-offset': `${ringOffset}px` }} 
-      />
-    </svg>
-    <div className="ring-center">
-      <span className="ring-value">
-        {totalRecorded ? `${rate.toFixed(1)}%` : "--"}
-      </span>
-      <span className="ring-label">Rate</span>
-    </div>
-  </div>
-</div>
-
+                  <div className="ring-panel">
+                    <div className="ring-wrap">
+                      <svg viewBox="0 0 100 100">
+                        <circle
+                          className="ring-track"
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          strokeWidth="7"
+                        />
+                        <circle
+                          className={`ring-fill ${rateIsLow ? "ring-low" : ""}`}
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="transparent"
+                          strokeWidth="7"
+                          strokeLinecap="round"
+                          strokeDasharray={RING_CIRCUMFERENCE}
+                          style={{ "--stroke-offset": `${ringOffset}px` }}
+                        />
+                      </svg>
+                      <div className="ring-center">
+                        <span className="ring-value">
+                          {totalRecorded ? `${rate.toFixed(1)}%` : "--"}
+                        </span>
+                        <span className="ring-label">Rate</span>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="stat-tiles">
                     {statTiles.map((tile) => (
@@ -315,7 +311,7 @@ function StudentProfile(  ) {
                           href={`tel:${guardian.phone_number}`}
                           aria-label={`Call ${guardian.name}`}
                         >
-                          <FontAwesomeIcon icon={faPhone} />
+                          <Phone size={16} strokeWidth={1.75} />
                         </a>
                         {guardian.email && (
                           <a
@@ -323,7 +319,7 @@ function StudentProfile(  ) {
                             href={`mailto:${guardian.email}`}
                             aria-label={`Email ${guardian.name}`}
                           >
-                            <FontAwesomeIcon icon={faEnvelope} />
+                            <Mail size={16} strokeWidth={1.75} />
                           </a>
                         )}
                       </div>

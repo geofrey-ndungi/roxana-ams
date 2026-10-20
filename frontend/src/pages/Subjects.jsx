@@ -5,13 +5,7 @@ import SubjectCard from "../components/SubjectCard";
 import "./Subjects.css";
 import mathImage from "../assets/subjects/math.jpeg";
 
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faBook } from "@fortawesome/free-solid-svg-icons";
-
-
-
-
+import { Search, Book } from "lucide-react";
 
 function Subjects() {
   const [subjects, setSubjects] = useState([]);
@@ -55,7 +49,6 @@ function Subjects() {
 
   return (
     <>
-
       <div className="subjects-page">
         {error && <p style={{ color: "red" }}>{error}</p>}
 
@@ -68,10 +61,12 @@ function Subjects() {
           </div>
 
           <div className="subjects-search">
-            <FontAwesomeIcon
-              icon={faMagnifyingGlass}
+            <Search
               className="subjects-search-icon"
+              size={16}
+              strokeWidth={1.75}
             />
+
             <input
               type="text"
               placeholder="Search subjects or codes..."
@@ -84,7 +79,7 @@ function Subjects() {
         {filteredSubjects.length === 0 ? (
           <div className="subjects-empty">
             <div className="subjects-empty-icon">
-              <FontAwesomeIcon icon={faBook} />
+              <Book size={24} strokeWidth={1.5} />
             </div>
             <h3>No subjects found</h3>
             <p>
@@ -95,14 +90,14 @@ function Subjects() {
           </div>
         ) : (
           <div className="subjects-grid">
-  {filteredSubjects.map((subject) => (
-    <SubjectCard
-      key={subject.id}
-      subject={subject}
-      imageSrc={getBannerImage(subject.name)}
-    />
-  ))}
-</div>
+            {filteredSubjects.map((subject) => (
+              <SubjectCard
+                key={subject.id}
+                subject={subject}
+                imageSrc={getBannerImage(subject.name)}
+              />
+            ))}
+          </div>
         )}
       </div>
     </>

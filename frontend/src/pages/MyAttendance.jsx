@@ -251,7 +251,7 @@ function MyAttendance() {
                   <span className={`sa-dot ${tile.dot}`}></span> {tile.label}
                 </span>
               ))}
-              <span className="sa-legend-note">Grey days have no record</span>
+              
             </div>
           </div>
 

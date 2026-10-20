@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
-  faChevronRight,
-  faCalendarDays,
-  faUsers,
-  faCheck,
-  faFloppyDisk,
-  faCircleInfo,
-} from "@fortawesome/free-solid-svg-icons";
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+  Users,
+  Check,
+  Save,
+  Info,
+} from "lucide-react";
 import api from "../api/axios";
 import "./Attendance.css";
 
@@ -266,11 +265,11 @@ function Attendance() {
               }}
               aria-label="Previous day"
             >
-              <FontAwesomeIcon icon={faChevronLeft} />
+              <ChevronLeft size={14} strokeWidth={1.75} />
             </button>
 
             <span className="at-date-text">
-              <FontAwesomeIcon icon={faCalendarDays} />
+              <CalendarDays size={16} strokeWidth={1.75} />
               {prettyDate}
             </span>
 
@@ -294,7 +293,7 @@ function Attendance() {
               }}
               aria-label="Next day"
             >
-              <FontAwesomeIcon icon={faChevronRight} />
+              <ChevronRight size={14} strokeWidth={1.75} />
             </button>
           </div>
         </div>
@@ -306,7 +305,7 @@ function Attendance() {
           </span>
           <span className="at-class-sep"></span>
           <span className="at-class-count">
-            <FontAwesomeIcon icon={faUsers} />
+            <Users size={16} strokeWidth={1.75} />
             {students.length} enrolled
           </span>
         </div>
@@ -401,7 +400,7 @@ function Attendance() {
                             }
                           >
                             {selected && option.value === "PRESENT" && (
-                              <FontAwesomeIcon icon={faCheck} />
+                              <Check size={14} strokeWidth={2} />
                             )}
                             {option.label}
                           </button>
@@ -432,7 +431,7 @@ function Attendance() {
           <div className="at-foot">
             <div className="at-foot-left">
               <div className={`at-foot-icon ${allMarked ? "" : "at-foot-icon-wait"}`}>
-                <FontAwesomeIcon icon={faCheck} />
+                <Check size={16} strokeWidth={2} />
               </div>
               <div>
                 <div className="at-foot-title">
@@ -448,7 +447,7 @@ function Attendance() {
               onClick={handleSave}
               disabled={saving || loadingDay || students.length === 0}
             >
-              <FontAwesomeIcon icon={faFloppyDisk} />
+              <Save size={16} strokeWidth={1.75} />
               {saving
                 ? "Saving..."
                 : savedCount > 0
@@ -459,7 +458,7 @@ function Attendance() {
         </div>
 
         <p className="at-note">
-          <FontAwesomeIcon icon={faCircleInfo} />
+          <Info size={14} strokeWidth={1.75} />
           Attendance is recorded for the selected date. Review your selections
           before saving.
         </p>
