@@ -1,5 +1,8 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+
+
 
 
 
@@ -128,3 +131,75 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.enrollment.student.username} - {self.date} - {self.get_status_display()}"
+class Period(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # "Period 1", "Break", "Lunch"
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    # False for break and lunch, so no lesson can be placed in them
+    is_lesson = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["start_time"]
+
+    def __str__(self):
+        return f"{self.name} ({self.start_time:%H:%M}-{self.end_time:%H:%M})"
+
+    def clean(self):
+        if self.start_time and self.end_time and self.end_time <= self.start_time:
+            raise ValidationError("The end time must be after the start time.")
+
+
+class Lesson(models.Model):
+    class Day(models.IntegerChoices):
+        MONDAY = 1, "Monday"
+        TUESDAY = 2, "Tuesday"
+        WEDNESDAY = 3, "Wednesday"
+        THURSDAY = 4, "Thursday"
+        FRIDAY = 5, "Friday"
+
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="lessons")
+    school_class = models.ForeignKey(
+        SchoolClass, on_delete=models.CASCADE, related_name="lessons"
+    )
+    day = models.PositiveSmallIntegerField(choices=Day.choices)
+    period = models.ForeignKey(
+        Period, on_delete=models.PROTECT, related_name="lessons"
+    )
+    subject = models.ForeignKey(
+        Subject, on_delete=models.PROTECT, related_name="lessons"
+    )
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="lessons_taught",
+        limit_choices_to={"role": "TEACHER"},
+    )
+    room = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        ordering = ["day", "period__start_time"]
+        constraints = [
+            # A class can only have one lesson at a time
+            models.UniqueConstraint(
+                fields=["term", "school_class", "day", "period"],
+                name="one_lesson_per_class_per_slot",
+                violation_error_message="This class already has a lesson in that period.",
+            ),
+            # A teacher can only be in one place at a time
+            models.UniqueConstraint(
+                fields=["term", "teacher", "day", "period"],
+                name="one_lesson_per_teacher_per_slot",
+                violation_error_message="This teacher is already teaching another class in that period.",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.school_class} - {self.get_day_display()} "
+            f"{self.period.name} - {self.subject}"
+        )
+
+    def clean(self):
+        if self.period_id and not self.period.is_lesson:
+            raise ValidationError({"period": "Lessons can't be placed in a break."})
+
