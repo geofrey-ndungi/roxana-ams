@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AcademicYear, Term, SchoolClass, Subject, Enrollment, Attendance
+from .models import AcademicYear, Term, SchoolClass, Subject, Enrollment, Attendance, Period, Lesson
 
 class AcademicYearSerializer(serializers.ModelSerializer):  # Translates django objects into JSON
     class Meta:
@@ -43,3 +43,26 @@ class AttendanceSerializer(serializers.ModelSerializer):
   class Meta:
     model = Attendance
     fields = ["id", "enrollment", "date", "status", "reason", "recorded_by"]
+
+
+
+
+class PeriodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Period
+        fields = ["id", "name", "start_time", "end_time", "is_lesson"]
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    subject_name = serializers.CharField(source="subject.name", read_only=True)
+    teacher_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Lesson
+        fields = [
+            "id", "term", "school_class", "day", "period",
+            "subject", "subject_name", "teacher", "teacher_name", "room",
+        ]
+
+    def get_teacher_name(self, obj):
+        return obj.teacher.get_full_name() or obj.teacher.username

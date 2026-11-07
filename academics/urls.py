@@ -9,6 +9,8 @@ from .views import (AcademicYearViewSet,
                     MyProfileView,
                     TeacherDashboardView,
                     AdminDashboardView,
+                    PeriodViewSet, LessonViewSet,
+                    TeacherListView
 )
 
 
@@ -21,9 +23,11 @@ router.register(r"terms", TermViewSet)
 router.register(r"school-classes", SchoolClassViewSet)
 router.register(r"enrollments", EnrollmentViewSet)
 router.register(r"attendance", AttendanceViewSet)
-
+router.register(r"periods", PeriodViewSet)
+router.register(r"lessons", LessonViewSet)
 urlpatterns = router.urls + [
     path("profile/me/", MyProfileView.as_view(), name="my-profile"),
     path("teacher/dashboard/", TeacherDashboardView.as_view(), name="teacher-dashboard"),
     path("admin/dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
+    path("teachers/", TeacherListView.as_view(), name="teacher-list"),
 ]

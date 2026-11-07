@@ -1,23 +1,23 @@
 from rest_framework import viewsets
-from .models import AcademicYear, Term,  SchoolClass, Subject, Enrollment, Attendance
+from .models import AcademicYear, Term,  SchoolClass, Subject, Enrollment, Attendance, Period, Lesson
 from .serializers import (AcademicYearSerializer,
                           TermSerializer, 
                           EnrollmentSerializer, 
                           SubjectSerializer, 
                           SchoolClassSerializer,
-                          AttendanceSerializer)
+                          AttendanceSerializer,
+                          PeriodSerializer, LessonSerializer)
 from .permissions import IsAdminOrReadOnly, IsClassTeacherOrAdmin
 from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
 import datetime
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from rest_framework.decorators import action
 from accounts.models import User
 
-
-
+from django.core.exceptions import ObjectDoesNotExist
 
 
 
@@ -546,3 +546,122 @@ class AdminDashboardView(APIView):
                 ],
             },
         })
+
+
+
+class PeriodViewSet(viewsets.ModelViewSet):
+    queryset = Period.objects.all()
+    serializer_class = PeriodSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+
+class LessonViewSet(viewsets.ModelViewSet):
+    queryset = Lesson.objects.all()
+    serializer_class = LessonSerializer
+    permission_classes = [IsAdminOrReadOnly]  # everyone can look, only admins change
+
+    def get_queryset(self):
+        queryset = Lesson.objects.select_related(
+            "term", "school_class", "period", "subject", "teacher"
+        )
+
+        # Optional filters: /api/lessons/?term=1&school_class=2
+        filters = {
+            "term": "term_id",
+            "school_class": "school_class_id",
+            "teacher": "teacher_id",
+            "period": "period_id",
+            "day": "day",
+        }
+        for param, field in filters.items():
+            value = self.request.query_params.get(param)
+            if value and value.isdigit():
+                queryset = queryset.filter(**{field: value})
+
+        return queryset
+
+    @action(detail=False, methods=["post"], url_path="save-cell")
+    def save_cell(self, request):
+        """Fills one box of the grid: creates the lesson, or replaces
+        whatever is already in that box."""
+        data = request.data
+
+        try:
+            term = Term.objects.get(id=data.get("term"))
+            school_class = SchoolClass.objects.get(id=data.get("school_class"))
+            period = Period.objects.get(id=data.get("period"))
+            subject = Subject.objects.get(id=data.get("subject"))
+            teacher = User.objects.get(id=data.get("teacher"), role="TEACHER")
+            day = int(data.get("day"))
+        except (ObjectDoesNotExist, ValueError, TypeError):
+            return Response(
+                {"detail": "Choose a subject and a teacher for this lesson."},
+                status=400,
+            )
+
+        if day not in Lesson.Day.values:
+            return Response({"detail": "That is not a school day."}, status=400)
+
+        if not period.is_lesson:
+            return Response(
+                {"detail": "Lessons can't be placed in a break."}, status=400
+            )
+
+        teacher_name = teacher.get_full_name() or teacher.username
+
+        # Is this teacher already teaching a DIFFERENT class in this slot?
+        clash = (
+            Lesson.objects.filter(term=term, teacher=teacher, day=day, period=period)
+            .exclude(school_class=school_class)
+            .select_related("school_class")
+            .first()
+        )
+        if clash:
+            return Response(
+                {
+                    "detail": f"{teacher_name} is already teaching "
+                    f"{clash.school_class.name} in that period."
+                },
+                status=400,
+            )
+
+        try:
+            with transaction.atomic():
+                lesson, created = Lesson.objects.update_or_create(
+                    term=term,
+                    school_class=school_class,
+                    day=day,
+                    period=period,
+                    defaults={
+                        "subject": subject,
+                        "teacher": teacher,
+                        "room": (data.get("room") or "")[:50],
+                    },
+                )
+        except IntegrityError:
+            # Someone else filled the slot a moment ago
+            return Response(
+                {"detail": "That slot was just taken. Please try again."},
+                status=400,
+            )
+
+        return Response(
+            LessonSerializer(lesson).data, status=201 if created else 200
+        )
+
+
+class TeacherListView(APIView):
+    """The teachers an admin can choose from when building the timetable."""
+
+    def get(self, request):
+        if request.user.role != "ADMIN":
+            return Response(
+                {"detail": "Only administrators can see this list."}, status=403
+            )
+
+        teachers = User.objects.filter(role="TEACHER", is_active=True).order_by(
+            "first_name", "username"
+        )
+        return Response(
+            [{"id": t.id, "name": t.get_full_name() or t.username} for t in teachers]
+        )
