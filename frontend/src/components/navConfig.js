@@ -55,7 +55,7 @@ export const adminNav = {
     { label: "Classes", icon: DoorOpen, soon: true },
     { label: "Subjects", icon: BookOpen, to: "/subjects" },
     { label: "Academic years", icon: CalendarRange, soon: true },
-    { label: "Timetable", icon: Clock, soon: true },
+    { label: "Timetable", icon: Clock, to: "/timetable" },
     { label: "Messages", icon: Mail, soon: true },
   ],
   sectionTitle: "",
