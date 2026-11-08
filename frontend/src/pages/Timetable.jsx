@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Navigate, useOutletContext } from "react-router-dom";
 import { Plus, X, Trash2 } from "lucide-react";
 import api from "../api/axios";
@@ -14,19 +14,26 @@ const DAYS = [
   { value: 4, label: "Thursday" },
   { value: 5, label: "Friday" },
 ];
+// How tall one minute is. A 40-minute lesson is 70px tall.
+// Make this smaller if the grid feels too tall.
+const PX_PER_MINUTE = 1.75;
 
-// Soft colours for subjects. A subject always gets the same one,
-// because we pick by its id.
-const PALETTE = [
-  { bg: "#eef2ff", fg: "#3730a3", border: "#dde4fb" },
-  { bg: "#ecfdf3", fg: "#1f7a4a", border: "#c7e8d3" },
-  { bg: "#fff4e6", fg: "#9a5200", border: "#fbe0b8" },
-  { bg: "#fdf2fa", fg: "#9e2a77", border: "#f8d4ec" },
-  { bg: "#ecfaff", fg: "#0b6b8a", border: "#c3ebf8" },
-  { bg: "#f4f3ff", fg: "#5b3fc4", border: "#e1dcfa" },
-  { bg: "#fef6ee", fg: "#b4501b", border: "#f9dcc4" },
-  { bg: "#f1f8e9", fg: "#4b7a1f", border: "#d9ebc3" },
+// Solid colours like Google Calendar. A subject always gets the same one,
+// because we pick by its id. White text is readable on every one of them.
+const COLORS = [
+  "#3f51b5",
+  "#0b8043",
+  "#d9480f",
+  "#8e24aa",
+  "#0277bd",
+  "#c62828",
+  "#2e7d6b",
+  "#546e7a",
 ];
+
+// "08:40:00" becomes 520 (minutes since midnight)
+const toMinutes = (time) =>
+  Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
 
 // "TERM_1" becomes "Term 1"
 const prettyTermName = (name) => {
@@ -236,6 +243,15 @@ function LessonEditor({
 }
 
 function Timetable() {
+
+  // The current time, refreshed every minute, for the red "now" line
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer); // stop the timer when leaving the page
+  }, []);
+
   const { user } = useOutletContext();
   const isAdmin = user?.role === "ADMIN";
 
@@ -380,6 +396,30 @@ function Timetable() {
 
   const totalSlots = DAYS.length * lessonPeriods.length;
 
+    // The hours we show: from the hour the first period starts
+  // to the hour the last one ends
+  const firstMinute =
+    Math.floor(Math.min(...periods.map((p) => toMinutes(p.start_time))) / 60) * 60;
+  const lastMinute =
+    Math.ceil(Math.max(...periods.map((p) => toMinutes(p.end_time))) / 60) * 60;
+
+  const hourHeight = 60 * PX_PER_MINUTE;
+  const gridHeight = (lastMinute - firstMinute) * PX_PER_MINUTE;
+
+  const hours = [];
+  for (let minute = firstMinute; minute < lastMinute; minute += 60) {
+    hours.push(minute);
+  }
+
+  // How far down the grid a time sits, in pixels
+  const topOf = (minute) => (minute - firstMinute) * PX_PER_MINUTE;
+
+  // Today's column, and where the red line goes.
+  // getDay() gives 1 for Monday up to 5 for Friday, like our own day numbers.
+  const todayDay = now.getDay();
+  const nowMinute = now.getHours() * 60 + now.getMinutes();
+  const showNowLine = nowMinute >= firstMinute && nowMinute <= lastMinute;
+
   // Things the admin still has to create before a timetable is possible
   const missing = [];
   if (terms.length === 0) missing.push("a term");
@@ -472,84 +512,139 @@ function Timetable() {
               </span>
             </div>
 
-            <div className="tt-grid-wrap">
-              <div
-                className="tt-grid"
-                style={{
-                  gridTemplateColumns: `120px repeat(${DAYS.length}, minmax(0, 1fr))`,
-                }}
-              >
-                <div></div>
-                {DAYS.map((day) => (
-                  <div className="tt-dayhead" key={day.value}>
-                    {day.label}
-                  </div>
-                ))}
-
-                {periods.map((period) => (
-                  <Fragment key={period.id}>
-                    <div className="tt-periodcell">
-                      <div className="tt-period-name">{period.name}</div>
-                      <div className="tt-period-time">
-                        {timeLabel(period.start_time)}–{timeLabel(period.end_time)}
-                      </div>
+            <div className="cal-wrap">
+              <div className="cal">
+                {/* Day names */}
+                <div className="cal-head">
+                  <div></div>
+                  {DAYS.map((day) => (
+                    <div
+                      className={`cal-dayhead ${
+                        day.value === todayDay ? "cal-today" : ""
+                      }`}
+                      key={day.value}
+                    >
+                      <span className="cal-dayname">{day.label.slice(0, 3)}</span>
+                      {day.value === todayDay && (
+                        <span className="cal-today-badge">Today</span>
+                      )}
                     </div>
+                  ))}
+                </div>
 
-                    {period.is_lesson ? (
-                      DAYS.map((day) => {
+                {/* The hours, and the five day columns */}
+                <div
+                  className="cal-body"
+                  style={{ "--hour": `${hourHeight}px`, height: gridHeight }}
+                >
+                  <div className="cal-axis">
+                    {hours.map((minute) => (
+                      <span
+                        className="cal-hour"
+                        key={minute}
+                        style={{ top: topOf(minute) }}
+                      >
+                        {String(minute / 60).padStart(2, "0")}:00
+                      </span>
+                    ))}
+                  </div>
+
+                  {DAYS.map((day) => (
+                    <div className="cal-col" key={day.value}>
+                      {/* Break and lunch, as shaded bands */}
+                      {periods
+                        .filter((p) => !p.is_lesson)
+                        .map((period) => {
+                          const start = toMinutes(period.start_time);
+                          const end = toMinutes(period.end_time);
+
+                          return (
+                            <div
+                              className="cal-band"
+                              key={period.id}
+                              style={{
+                                top: topOf(start),
+                                height: (end - start) * PX_PER_MINUTE,
+                              }}
+                            >
+                              <span>{period.name}</span>
+                            </div>
+                          );
+                        })}
+
+                      {/* Lessons, and empty periods you can click */}
+                      {lessonPeriods.map((period) => {
                         const lesson = lessonAt(day.value, period.id);
-                        const color = lesson
-                          ? PALETTE[lesson.subject % PALETTE.length]
-                          : null;
+                        const start = toMinutes(period.start_time);
+                        const end = toMinutes(period.end_time);
+
+                        // The 1px and 2px leave a thin gap between blocks
+                        const position = {
+                          top: topOf(start) + 1,
+                          height: (end - start) * PX_PER_MINUTE - 2,
+                        };
+
+                        if (!lesson) {
+                          return (
+                            <button
+                              key={period.id}
+                              type="button"
+                              className="cal-slot"
+                              style={position}
+                              onClick={() =>
+                                setEditing({ day: day.value, period, lesson })
+                              }
+                              aria-label={`${day.label} ${period.name}: empty. Add a lesson`}
+                            >
+                              <span className="cal-slot-name">{period.name}</span>
+                              <Plus
+                                className="cal-slot-plus"
+                                size={16}
+                                strokeWidth={1.75}
+                              />
+                            </button>
+                          );
+                        }
 
                         return (
                           <button
-                            key={day.value}
+                            key={period.id}
                             type="button"
-                            className={`tt-cell ${
-                              lesson ? "tt-cell-filled" : "tt-cell-empty"
-                            }`}
-                            style={
-                              lesson
-                                ? {
-                                    background: color.bg,
-                                    borderColor: color.border,
-                                    color: color.fg,
-                                  }
-                                : undefined
-                            }
+                            className="cal-event"
+                            style={{
+                              ...position,
+                              background: COLORS[lesson.subject % COLORS.length],
+                            }}
                             onClick={() =>
                               setEditing({ day: day.value, period, lesson })
                             }
-                            aria-label={
-                              lesson
-                                ? `${day.label} ${period.name}: ${lesson.subject_name}. Edit`
-                                : `${day.label} ${period.name}: empty. Add a lesson`
-                            }
+                            aria-label={`${day.label} ${period.name}: ${lesson.subject_name}. Edit`}
                           >
-                            {lesson ? (
-                              <>
-                                <span className="tt-cell-subject">
-                                  {lesson.subject_name}
-                                </span>
-                                <span className="tt-cell-teacher">
-                                  {lesson.teacher_name}
-                                </span>
-                                {lesson.room && (
-                                  <span className="tt-cell-room">{lesson.room}</span>
-                                )}
-                              </>
-                            ) : (
-                              <Plus size={16} strokeWidth={1.75} />
-                            )}
+                            <span className="cal-event-subject">
+                              {lesson.subject_name}
+                            </span>
+                            <span className="cal-event-time">
+                              {timeLabel(period.start_time)} –{" "}
+                              {timeLabel(period.end_time)}
+                            </span>
+                            <span className="cal-event-meta">
+                              {lesson.teacher_name}
+                              {lesson.room ? ` · ${lesson.room}` : ""}
+                            </span>
                           </button>
                         );
-                      })
-                    ) : (
-                      <div className="tt-breakrow">{period.name}</div>
-                    )}
-                  </Fragment>
-                ))}
+                      })}
+
+                      {/* The red "now" line, on today's column only */}
+                      {day.value === todayDay && showNowLine && (
+                        <div
+                          className="cal-now"
+                          style={{ top: topOf(nowMinute) }}
+                        ></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

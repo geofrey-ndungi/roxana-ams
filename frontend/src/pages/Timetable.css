@@ -143,67 +143,43 @@
   border-bottom: 1px solid var(--tt-border);
 }
 
-.tt-loading .tt-grid-wrap {
+/* ---------- Calendar ---------- */
+.tt-loading .cal-wrap {
   opacity: 0.5;
   pointer-events: none;
   transition: opacity 0.15s ease;
 }
 
-/* The grid */
-.tt-grid-wrap {
-  padding: 1rem 1.25rem 1.25rem;
+.cal-wrap {
   overflow-x: auto;
 }
 
-.tt-grid {
+.cal {
+  min-width: 760px;
+}
+
+.cal-head,
+.cal-body {
   display: grid;
-  gap: 6px;
-  min-width: 780px;
+  grid-template-columns: 64px repeat(5, minmax(0, 1fr));
 }
 
-.tt-dayhead {
-  padding: 0.35rem 0;
-  text-align: center;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--tt-muted);
+/* Day names */
+.cal-head {
+  border-bottom: 1px solid var(--tt-border);
 }
 
-.tt-periodcell {
+.cal-dayhead {
+  min-height: 56px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0 0.5rem;
-}
-
-.tt-period-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.tt-period-time {
-  font-size: 0.72rem;
-  color: var(--tt-muted);
-}
-
-/* Break and lunch bands */
-.tt-breakrow {
-  grid-column: 2 / -1;
-  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  background: repeating-linear-gradient(
-    135deg,
-    #f9fafb,
-    #f9fafb 8px,
-    #f2f4f7 8px,
-    #f2f4f7 16px
-  );
-  border: 1px solid var(--tt-border);
-  border-radius: 6px;
+  gap: 0.25rem;
+  border-left: 1px solid var(--tt-border);
+}
+
+.cal-dayname {
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -211,64 +187,208 @@
   color: var(--tt-muted);
 }
 
-/* One box of the grid */
-.tt-cell {
-  min-height: 76px;
-  box-sizing: border-box;
-  padding: 0.5rem 0.6rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.1rem;
-  text-align: left;
-  font-family: inherit;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.1s ease;
-}
-
-.tt-cell:active {
-  transform: scale(0.99);
-}
-
-.tt-cell-empty {
-  align-items: center;
-  background: #ffffff;
-  border: 1px dashed #d0d5dd;
-  color: #c0c6d1;
-}
-
-.tt-cell-empty:hover {
-  background: #f8f9fb;
-  border-color: var(--tt-dark);
+.cal-today .cal-dayname {
   color: var(--tt-dark);
 }
 
-.tt-cell-filled:hover {
-  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.12);
+.cal-today-badge {
+  padding: 0.05rem 0.55rem;
+  border-radius: 9999px;
+  background: var(--tt-dark);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
-.tt-cell:focus-visible {
+/* The hours down the left */
+.cal-body {
+  position: relative;
+}
+
+.cal-axis {
+  position: relative;
+}
+
+.cal-hour {
+  position: absolute;
+  right: 0.6rem;
+  transform: translateY(-50%);
+  font-size: 0.68rem;
+  color: var(--tt-muted);
+}
+
+/* The first label sits just below the header line instead of on it */
+.cal-hour:first-child {
+  transform: translateY(2px);
+}
+
+/* A day column. The hour lines are one repeating background. */
+.cal-col {
+  position: relative;
+  border-left: 1px solid var(--tt-border);
+}
+
+.cal-hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #eef0f3;
+  pointer-events: none;
+}
+
+/* Break and lunch */
+.cal-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    135deg,
+    #f9fafb,
+    #f9fafb 8px,
+    #f2f4f7 8px,
+    #f2f4f7 16px
+  );
+  border-top: 1px solid var(--tt-border);
+  border-bottom: 1px solid var(--tt-border);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tt-muted);
+  pointer-events: none;
+}
+
+/* An empty period you can click */
+.cal-slot {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  box-sizing: border-box;
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: transparent;
+  border: 1px dashed transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  color: #b6bcc8;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cal-slot-name {
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.cal-slot-time {
+  font-size: 0.62rem;
+  color: var(--tt-muted);
+}
+
+.cal-slot-plus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.cal-slot:hover {
+  background: #f8f9fb;
+  border-color: #c4cad4;
+  color: var(--tt-dark);
+}
+
+.cal-slot:hover .cal-slot-plus {
+  opacity: 1;
+}
+
+.cal-slot:focus-visible {
+  outline: 2px solid var(--tt-dark);
+  outline-offset: -2px;
+}
+
+/* A lesson */
+.cal-event {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  box-sizing: border-box;
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  overflow: hidden;
+  text-align: left;
+  font-family: inherit;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.15);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.cal-event:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 3px 10px rgba(16, 24, 40, 0.25);
+  z-index: 2;
+}
+
+.cal-event:focus-visible {
   outline: 2px solid var(--tt-dark);
   outline-offset: 2px;
 }
 
-.tt-cell-subject {
-  font-size: 0.85rem;
+.cal-event-subject {
+  font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.tt-cell-teacher {
-  font-size: 0.75rem;
+.cal-event-time {
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.cal-event-meta {
+  font-size: 0.7rem;
   opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.tt-cell-room {
-  font-size: 0.68rem;
-  font-weight: 500;
-  opacity: 0.7;
+/* The red "now" line */
+.cal-now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ea4335;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.cal-now::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ea4335;
 }
 
 /* The dialog */
