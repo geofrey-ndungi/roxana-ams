@@ -214,6 +214,26 @@
   margin-bottom: 0.9rem;
 }
 
+.tt-field .tt-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--tt-text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.tt-checkbox input {
+  accent-color: var(--tt-dark);
+}
+
+.tt-checkbox input:disabled {
+  cursor: not-allowed;
+}
+
 .tt-hint {
   margin: 0;
   font-size: 0.72rem;

@@ -69,6 +69,29 @@ Roxana AMS currently includes the following application modules:
 
 **Note:** Feature availability and access permissions depend on the backend implementation and the roles assigned to individual users.
 
+### Standard School Timetable
+
+The `python manage.py seed_periods` command creates or updates the standard school day:
+
+| Time | Activity |
+|---|---|
+| 7:50–8:20 | Assembly (Period 1) |
+| 8:20–8:55 | Period 2 |
+| 8:55–9:30 | Period 3 |
+| 9:30–9:50 | Short break |
+| 9:50–10:25 | Period 4 |
+| 10:25–11:00 | Period 5 |
+| 11:00–11:30 | Tea break |
+| 11:30–12:05 | Period 6 |
+| 12:05–12:40 | Period 7 |
+| 12:40–2:00 | Lunch |
+| 2:00–2:35 | Period 8 |
+| 2:35–3:10 | Period 9 |
+| 3:10–4:00 | Games |
+
+Assembly, breaks, lunch, and games are fixed timetable activities rather than editable lessons.
+Adjacent lesson periods can be marked as a double lesson; the setting is saved with the lesson, and the next period must be free.
+
 ## Technology Stack
 
 The application is built using the following technologies:

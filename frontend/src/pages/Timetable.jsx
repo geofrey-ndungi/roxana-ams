@@ -27,6 +27,9 @@ function LessonEditor({
   subjects,
   teachers,
   busy,
+  nextPeriod,
+  nextPeriodOccupied,
+  busyForDouble,
   onClose,
   onSaved,
   onCleared,
@@ -36,6 +39,7 @@ function LessonEditor({
   const [subjectId, setSubjectId] = useState(lesson ? String(lesson.subject) : "");
   const [teacherId, setTeacherId] = useState(lesson ? String(lesson.teacher) : "");
   const [room, setRoom] = useState(lesson ? lesson.room : "");
+  const [isDouble, setIsDouble] = useState(Boolean(lesson?.is_double));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,6 +59,17 @@ function LessonEditor({
       setError("Choose a subject and a teacher.");
       return;
     }
+    if (isDouble && nextPeriodOccupied) {
+      setError("The next period is already assigned to this class.");
+      return;
+    }
+    if (isDouble && busyForDouble[teacherId]) {
+      const teacherName = teachers.find(
+        (teacher) => String(teacher.id) === teacherId
+      )?.name;
+      setError(`${teacherName} is already teaching another class in the next period.`);
+      return;
+    }
 
     setSaving(true);
     setError("");
@@ -68,6 +83,7 @@ function LessonEditor({
         subject: Number(subjectId),
         teacher: Number(teacherId),
         room,
+        is_double: isDouble,
       });
       onSaved(response.data);
     } catch (err) {
@@ -86,7 +102,7 @@ function LessonEditor({
     try {
       await api.delete(`/lessons/${lesson.id}/`);
       onCleared(lesson.id);
-    } catch (err) {
+    } catch {
       setError("Couldn't clear this lesson. Please try again.");
       setSaving(false);
     }
@@ -138,6 +154,25 @@ function LessonEditor({
           </select>
         </div>
 
+        {nextPeriod && (
+          <div className="tt-field tt-double-field">
+            <label className="tt-checkbox">
+              <input
+                type="checkbox"
+                checked={isDouble}
+                onChange={(event) => setIsDouble(event.target.checked)}
+                disabled={saving || (nextPeriodOccupied && !isDouble)}
+              />
+              <span>Double lesson through {nextPeriod.name}</span>
+            </label>
+            <p className="tt-hint">
+              {nextPeriodOccupied
+                ? "The next period is already assigned to this class."
+                : `Extends to ${timeLabel(nextPeriod.end_time)}. No break is between these periods.`}
+            </p>
+          </div>
+        )}
+
         <div className="tt-field">
           <label htmlFor="tt-teacher">Teacher</label>
           <select
@@ -148,11 +183,20 @@ function LessonEditor({
             <option value="">Choose a teacher</option>
             {teachers.map((teacher) => {
               const busyIn = busy[teacher.id];
+              const busyInNext = isDouble && busyForDouble[teacher.id];
 
               return (
-                <option key={teacher.id} value={teacher.id} disabled={Boolean(busyIn)}>
+                <option
+                  key={teacher.id}
+                  value={teacher.id}
+                  disabled={Boolean(busyIn || busyInNext)}
+                >
                   {teacher.name}
-                  {busyIn ? ` (teaching ${busyIn})` : ""}
+                  {busyIn
+                    ? ` (teaching ${busyIn})`
+                    : busyInNext
+                      ? ` (teaching ${busyInNext} next period)`
+                      : ""}
                 </option>
               );
             })}
@@ -375,6 +419,15 @@ function Timetable() {
   if (teachers.length === 0) missing.push("teachers");
 
   const canShowGrid = terms.length > 0 && classes.length > 0 && lessonPeriods.length > 0;
+  const editingNextPeriod = editing
+    ? lessonPeriods.find((period) => period.start_time === editing.period.end_time)
+    : null;
+  const editingNextPeriodLesson =
+    editingNextPeriod &&
+    classLessons.find(
+      (lesson) =>
+        lesson.day === editing.day && lesson.period === editingNextPeriod.id
+    );
 
   const handleSaved = (saved) => {
     // A new lesson is added. An edited one keeps its id, so it is replaced.
@@ -393,9 +446,6 @@ function Timetable() {
         <div className="tt-top">
           <div>
             <h1 className="tt-title">Timetable</h1>
-            <p className="tt-subtitle">
-              Click a box to set the lesson. Changes are saved straight away.
-            </p>
           </div>
 
           {canShowGrid && (
@@ -482,6 +532,13 @@ function Timetable() {
           subjects={subjects}
           teachers={teachers}
           busy={busyAt(editing.day, editing.period.id)}
+          nextPeriod={editingNextPeriod}
+          nextPeriodOccupied={Boolean(editingNextPeriodLesson)}
+          busyForDouble={
+            editingNextPeriod
+              ? busyAt(editing.day, editingNextPeriod.id)
+              : {}
+          }
           onClose={() => setEditing(null)}
           onSaved={handleSaved}
           onCleared={handleCleared}

@@ -122,11 +122,34 @@ function TimetableCalendar({ periods, lessons, metaFor, onSlotClick }) {
               {lessonPeriods.map((period) => {
                 const lesson = lessonAt(day.value, period.id);
                 const start = toMinutes(period.start_time);
+                const nextPeriod =
+                  lesson &&
+                  periods.find(
+                    (candidate) =>
+                      candidate.is_lesson &&
+                      candidate.start_time === period.end_time
+                  );
+                const coversNextPeriod = Boolean(
+                  lesson?.is_double && nextPeriod
+                );
+                const previousDoublePeriod = lessonPeriods.find(
+                  (candidate) =>
+                    candidate.end_time === period.start_time &&
+                    lessonAt(day.value, candidate.id)?.is_double
+                );
+
+                if (!lesson && previousDoublePeriod) return null;
 
                 // The 1px and 2px leave a thin gap between blocks
                 const position = {
                   top: topOf(start) + 1,
-                  height: LESSON_DURATION_MINUTES * PX_PER_MINUTE - 2,
+                  height:
+                    ((coversNextPeriod
+                      ? toMinutes(nextPeriod.end_time)
+                      : start + LESSON_DURATION_MINUTES) -
+                      start) *
+                      PX_PER_MINUTE -
+                    2,
                 };
 
                 // Buttons in the editor, plain boxes when read-only
@@ -160,10 +183,11 @@ function TimetableCalendar({ periods, lessons, metaFor, onSlotClick }) {
                 return (
                   <Tag
                     key={period.id}
-                    className="cal-event"
+                    className={`cal-event ${coversNextPeriod ? "cal-event-double" : ""}`}
                     style={{
                       ...position,
                       background: COLORS[lesson.subject % COLORS.length],
+                      zIndex: coversNextPeriod ? 2 : undefined,
                     }}
                     {...buttonProps}
                     {...(clickable
@@ -172,7 +196,12 @@ function TimetableCalendar({ periods, lessons, metaFor, onSlotClick }) {
                   >
                     <span className="cal-event-subject">{lesson.subject_name}</span>
                     <span className="cal-event-time">
-                      {timeLabel(period.start_time)} – {timeLabel(period.end_time)}
+                      {timeLabel(period.start_time)} –{" "}
+                      {timeLabel(
+                        coversNextPeriod
+                          ? nextPeriod.end_time
+                          : period.end_time
+                      )}
                     </span>
                     <span className="cal-event-meta">{metaFor(lesson)}</span>
                   </Tag>

@@ -186,6 +186,11 @@ button.cal-slot:focus-visible {
   cursor: default;
 }
 
+.cal-event-double {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 button.cal-event {
   cursor: pointer;
   transition: box-shadow 0.15s ease, filter 0.15s ease;
