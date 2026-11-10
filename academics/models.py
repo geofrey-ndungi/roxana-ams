@@ -135,7 +135,7 @@ class Period(models.Model):
     name = models.CharField(max_length=50, unique=True)  # "Period 1", "Break", "Lunch"
     start_time = models.TimeField()
     end_time = models.TimeField()
-    # False for break and lunch, so no lesson can be placed in them
+    # False for fixed activities and breaks, so no lesson can be placed in them
     is_lesson = models.BooleanField(default=True)
 
     class Meta:
@@ -201,5 +201,4 @@ class Lesson(models.Model):
 
     def clean(self):
         if self.period_id and not self.period.is_lesson:
-            raise ValidationError({"period": "Lessons can't be placed in a break."})
-
+            raise ValidationError({"period": "Lessons can't be placed in this period."})

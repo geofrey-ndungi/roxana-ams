@@ -10,7 +10,8 @@ from .views import (AcademicYearViewSet,
                     TeacherDashboardView,
                     AdminDashboardView,
                     PeriodViewSet, LessonViewSet,
-                    TeacherListView
+                    TeacherListView, 
+                    MyTimetableView,
 )
 
 
@@ -30,4 +31,5 @@ urlpatterns = router.urls + [
     path("teacher/dashboard/", TeacherDashboardView.as_view(), name="teacher-dashboard"),
     path("admin/dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
     path("teachers/", TeacherListView.as_view(), name="teacher-list"),
+    path("timetable/me/", MyTimetableView.as_view(), name="my-timetable"),
 ]

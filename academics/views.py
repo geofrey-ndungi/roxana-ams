@@ -8,7 +8,7 @@ from .serializers import (AcademicYearSerializer,
                           AttendanceSerializer,
                           PeriodSerializer, LessonSerializer)
 from .permissions import IsAdminOrReadOnly, IsClassTeacherOrAdmin
-from django.db.models import Count
+from django.db.models import Count ,F
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
@@ -564,7 +564,19 @@ class LessonViewSet(viewsets.ModelViewSet):
         queryset = Lesson.objects.select_related(
             "term", "school_class", "period", "subject", "teacher"
         )
-
+        # Who is allowed to see which lessons
+        user = self.request.user
+        if user.role == "TEACHER":
+            queryset = queryset.filter(teacher=user)
+        elif user.role == "STUDENT":
+            # Lessons of the class this student is enrolled in, in that term's year.
+            # Both conditions are in one filter(), so they apply to the same enrollment.
+            queryset = queryset.filter(
+                school_class__enrollments__student=user,
+                school_class__enrollments__academic_year=F("term__academic_year"),
+            )
+        elif user.role != "ADMIN":
+            queryset = queryset.none()
         # Optional filters: /api/lessons/?term=1&school_class=2
         filters = {
             "term": "term_id",
@@ -665,3 +677,65 @@ class TeacherListView(APIView):
         return Response(
             [{"id": t.id, "name": t.get_full_name() or t.username} for t in teachers]
         )
+
+
+
+class MyTimetableView(APIView):
+    """A teacher's own week, or a student's class week, for the current term."""
+
+    def get(self, request):
+        user = request.user
+
+        if user.role not in ("TEACHER", "STUDENT"):
+            return Response(
+                {"detail": "Administrators use the timetable editor."}, status=403
+            )
+
+        today = timezone.localdate()
+
+        # The term that today falls inside. If the dates aren't filled in
+        # properly, fall back to the active term, then the newest one.
+        terms = Term.objects.select_related("academic_year")
+        term = (
+            terms.filter(start_date__lte=today, end_date__gte=today).first()
+            or terms.filter(is_active=True).first()
+            or terms.order_by("-academic_year__year", "-start_date").first()
+        )
+
+        result = {
+            "role": user.role,
+            "today": today,
+            "term": None,
+            "school_class": None,
+            "periods": PeriodSerializer(Period.objects.all(), many=True).data,
+            "lessons": [],
+        }
+
+        if term is None:
+            return Response(result)
+
+        result["term"] = {
+            "id": term.id,
+            "label": f"{term.get_name_display()} {term.academic_year.year}",
+        }
+
+        lessons = Lesson.objects.filter(term=term).select_related(
+            "school_class", "period", "subject", "teacher"
+        )
+
+        if user.role == "TEACHER":
+            lessons = lessons.filter(teacher=user)
+        else:
+            enrollment = (
+                Enrollment.objects.select_related("school_class")
+                .filter(student=user, academic_year=term.academic_year)
+                .first()
+            )
+            if enrollment is None:
+                return Response(result)  # not in a class this year
+
+            result["school_class"] = enrollment.school_class.name
+            lessons = lessons.filter(school_class=enrollment.school_class)
+
+        result["lessons"] = LessonSerializer(lessons, many=True).data
+        return Response(result)
