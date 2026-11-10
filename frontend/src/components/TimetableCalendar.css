@@ -1,0 +1,247 @@
+.cal-wrap {
+  --cal-border: #e4e7ec;
+  --cal-muted: #667085;
+  --cal-dark: #1e2d4d;
+
+  overflow-x: auto;
+}
+
+.cal {
+  min-width: 760px;
+}
+
+.cal-head,
+.cal-body {
+  display: grid;
+  grid-template-columns: 64px repeat(5, minmax(0, 1fr));
+}
+
+/* Day names */
+.cal-head {
+  border-bottom: 1px solid var(--cal-border);
+}
+
+.cal-dayhead {
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-left: 1px solid var(--cal-border);
+}
+
+.cal-dayname {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cal-muted);
+}
+
+.cal-today .cal-dayname {
+  color: var(--cal-dark);
+}
+
+.cal-today-badge {
+  padding: 0.05rem 0.55rem;
+  border-radius: 9999px;
+  background: var(--cal-dark);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+/* The hours down the left */
+.cal-body {
+  position: relative;
+}
+
+.cal-axis {
+  position: relative;
+}
+
+.cal-hour {
+  position: absolute;
+  right: 0.6rem;
+  transform: translateY(-50%);
+  font-size: 0.68rem;
+  color: var(--cal-muted);
+}
+
+/* The first label sits just below the header line instead of on it */
+.cal-hour:first-child {
+  transform: translateY(2px);
+}
+
+.cal-hour:last-child {
+  transform: translateY(-100%);
+}
+
+/* A day column. The hour lines are one repeating background. */
+.cal-col {
+  position: relative;
+  border-left: 1px solid var(--cal-border);
+  background-image: linear-gradient(to bottom, #eef0f3 1px, transparent 1px);
+  background-size: 100% var(--hour);
+  background-position-y: var(--hour-offset);
+}
+
+/* Break and lunch */
+.cal-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    135deg,
+    #f9fafb,
+    #f9fafb 8px,
+    #f2f4f7 8px,
+    #f2f4f7 16px
+  );
+  border-top: 1px solid var(--cal-border);
+  border-bottom: 1px solid var(--cal-border);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cal-muted);
+  pointer-events: none;
+}
+
+/* An empty period. Plain by default, interactive only when it is a button. */
+.cal-slot {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  box-sizing: border-box;
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  background: transparent;
+  border: 1px dashed transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  text-align: left;
+  color: #b6bcc8;
+  cursor: default;
+  border-bottom-color: var(--cal-border);
+  border-radius: 0;
+}
+
+.cal-slot-name {
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.cal-slot-plus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+button.cal-slot {
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+button.cal-slot:hover {
+  background: #f8f9fb;
+  border-color: #c4cad4;
+  color: var(--cal-dark);
+}
+
+button.cal-slot:hover .cal-slot-plus {
+  opacity: 1;
+}
+
+button.cal-slot:focus-visible {
+  outline: 2px solid var(--cal-dark);
+  outline-offset: -2px;
+}
+
+/* A lesson */
+.cal-event {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  box-sizing: border-box;
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  overflow: hidden;
+  text-align: left;
+  font-family: inherit;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.15);
+  cursor: default;
+}
+
+button.cal-event {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+button.cal-event:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 3px 10px rgba(16, 24, 40, 0.25);
+  z-index: 2;
+}
+
+button.cal-event:focus-visible {
+  outline: 2px solid var(--cal-dark);
+  outline-offset: 2px;
+}
+
+.cal-event-subject {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-event-time {
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.cal-event-meta {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The red "now" line */
+.cal-now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ea4335;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.cal-now::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ea4335;
+}

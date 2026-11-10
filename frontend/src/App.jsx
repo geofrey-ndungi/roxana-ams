@@ -9,8 +9,7 @@ import AppLayout from "./components/AppLayout";
 import RoleHome from "./components/RoleHome";
 import Dashboard from "./pages/Dashboard";
 import MyAttendance from "./pages/MyAttendance";
-import Timetable from "./pages/Timetable";
-
+import TimetableHome from "./pages/TimetableHome";
 
 
 
@@ -55,8 +54,7 @@ function App() {
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/profile" element={<StudentProfile />} />
         <Route path="/my-attendance" element={<MyAttendance />} />
-        <Route path="/timetable" element={<Timetable />} />
-        
+        <Route path="/timetable" element={<TimetableHome />} />        
       </Route>
     </Routes>
   );
