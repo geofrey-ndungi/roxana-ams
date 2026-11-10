@@ -55,12 +55,13 @@ class PeriodSerializer(serializers.ModelSerializer):
 
 class LessonSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source="subject.name", read_only=True)
+    class_name = serializers.CharField(source="school_class.name", read_only=True)
     teacher_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Lesson
         fields = [
-            "id", "term", "school_class", "day", "period",
+            "id", "term", "school_class", "class_name", "day", "period",
             "subject", "subject_name", "teacher", "teacher_name", "room",
         ]
 
