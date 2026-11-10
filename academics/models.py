@@ -175,6 +175,7 @@ class Lesson(models.Model):
         limit_choices_to={"role": "TEACHER"},
     )
     room = models.CharField(max_length=50, blank=True)
+    is_double = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["day", "period__start_time"]
@@ -202,3 +203,55 @@ class Lesson(models.Model):
     def clean(self):
         if self.period_id and not self.period.is_lesson:
             raise ValidationError({"period": "Lessons can't be placed in this period."})
+        if (
+            not self.period_id
+            or not self.term_id
+            or not self.school_class_id
+            or not self.teacher_id
+        ):
+            return
+
+        next_period = Period.objects.filter(
+            is_lesson=True,
+            start_time=self.period.end_time,
+        ).first()
+
+        if self.is_double and not next_period:
+            raise ValidationError(
+                {"is_double": "A double lesson needs an immediately following lesson period."}
+            )
+
+        if self.is_double and Lesson.objects.filter(
+            term_id=self.term_id,
+            school_class_id=self.school_class_id,
+            day=self.day,
+            period=next_period,
+        ).exclude(pk=self.pk).exists():
+            raise ValidationError(
+                {"is_double": "The next period is already used by this class."}
+            )
+
+        if self.is_double and Lesson.objects.filter(
+            term_id=self.term_id,
+            teacher_id=self.teacher_id,
+            day=self.day,
+            period=next_period,
+        ).exclude(school_class_id=self.school_class_id).exists():
+            raise ValidationError(
+                {"is_double": "The teacher is already teaching another class in the next period."}
+            )
+
+        previous_double = Lesson.objects.filter(
+            term_id=self.term_id,
+            day=self.day,
+            is_double=True,
+            period__end_time=self.period.start_time,
+        ).exclude(pk=self.pk)
+        if previous_double.filter(school_class_id=self.school_class_id).exists():
+            raise ValidationError(
+                {"period": "This class already has a double lesson in the previous period."}
+            )
+        if previous_double.filter(teacher_id=self.teacher_id).exists():
+            raise ValidationError(
+                {"teacher": "This teacher already has a double lesson in the previous period."}
+            )

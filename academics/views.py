@@ -18,6 +18,7 @@ from rest_framework.decorators import action
 from accounts.models import User
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 
 
 
@@ -619,6 +620,13 @@ class LessonViewSet(viewsets.ModelViewSet):
                 {"detail": "Lessons can't be placed in a break."}, status=400
             )
 
+        is_double = data.get("is_double", False)
+        if not isinstance(is_double, bool):
+            return Response(
+                {"detail": "The double-lesson option must be true or false."},
+                status=400,
+            )
+
         teacher_name = teacher.get_full_name() or teacher.username
 
         # Is this teacher already teaching a DIFFERENT class in this slot?
@@ -639,7 +647,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         try:
             with transaction.atomic():
-                lesson, created = Lesson.objects.update_or_create(
+                lesson, created = Lesson.objects.get_or_create(
                     term=term,
                     school_class=school_class,
                     day=day,
@@ -648,8 +656,21 @@ class LessonViewSet(viewsets.ModelViewSet):
                         "subject": subject,
                         "teacher": teacher,
                         "room": (data.get("room") or "")[:50],
+                        "is_double": is_double,
                     },
                 )
+                if not created:
+                    lesson.subject = subject
+                    lesson.teacher = teacher
+                    lesson.room = (data.get("room") or "")[:50]
+                    lesson.is_double = is_double
+                lesson.clean()
+                lesson.save()
+        except ValidationError as error:
+            return Response(
+                {"detail": " ".join(error.messages)},
+                status=400,
+            )
         except IntegrityError:
             # Someone else filled the slot a moment ago
             return Response(

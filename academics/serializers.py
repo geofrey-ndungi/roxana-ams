@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.core.exceptions import ValidationError
 from .models import AcademicYear, Term, SchoolClass, Subject, Enrollment, Attendance, Period, Lesson
 
 class AcademicYearSerializer(serializers.ModelSerializer):  # Translates django objects into JSON
@@ -63,7 +64,20 @@ class LessonSerializer(serializers.ModelSerializer):
         fields = [
             "id", "term", "school_class", "class_name", "day", "period",
             "subject", "subject_name", "teacher", "teacher_name", "room",
+            "is_double",
         ]
 
     def get_teacher_name(self, obj):
         return obj.teacher.get_full_name() or obj.teacher.username
+
+    def validate(self, attrs):
+        lesson = self.instance or Lesson()
+        for field, value in attrs.items():
+            setattr(lesson, field, value)
+
+        try:
+            lesson.clean()
+        except ValidationError as exc:
+            raise serializers.ValidationError(exc.message_dict) from exc
+
+        return attrs

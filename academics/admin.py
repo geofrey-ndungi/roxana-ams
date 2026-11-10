@@ -45,6 +45,9 @@ class PeriodAdmin(admin.ModelAdmin):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ["term", "school_class", "day", "period", "subject", "teacher", "room"]
+    list_display = [
+        "term", "school_class", "day", "period", "subject", "teacher", "room",
+        "is_double",
+    ]
     list_filter = ["term", "school_class", "teacher", "day"]
     list_select_related = ["term", "school_class", "period", "subject", "teacher"]
