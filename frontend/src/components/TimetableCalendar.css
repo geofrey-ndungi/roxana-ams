@@ -208,7 +208,7 @@ button.cal-event:focus-visible {
 }
 
 .cal-event-subject {
-  font-size: 0.82rem;
+  font-size: 1.0rem;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
