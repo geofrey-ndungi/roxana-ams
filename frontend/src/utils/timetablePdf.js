@@ -109,7 +109,9 @@ const buildBody = (periods, lessons, view, options, rowHeight) => {
         content: "",
         styles: { fillColor: [249, 250, 251], minCellHeight: rowHeight },
         parts: [
-          { text: period.name, style: "bold", size: 8, color: INK, maxLines: 1 },
+
+            // Un commentthe line bellow to remove the comments
+        //   { text: period.name, style: "bold", size: 8, color: INK, maxLines: 1 },
           { text: times, style: "normal", size: 7, color: MUTED, maxLines: 1 },
         ],
       },
