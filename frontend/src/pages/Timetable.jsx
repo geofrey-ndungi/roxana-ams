@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navigate, useOutletContext } from "react-router-dom";
-import { X, Trash2 } from "lucide-react";
+import { Printer, X, Trash2 } from "lucide-react";
+import PrintTimetableDialog from "../components/PrintTimetableDialog";
 import TimetableCalendar from "../components/TimetableCalendar";
 import { DAYS, timeLabel } from "../utils/timetable";
 import api from "../api/axios";
@@ -277,6 +278,7 @@ function Timetable() {
   const [lessonsLoading, setLessonsLoading] = useState(false);
   const [lessonsError, setLessonsError] = useState("");
   const [editing, setEditing] = useState(null); // the box being edited
+  const [printing, setPrinting] = useState(false);
 
   // 1. Load everything the page needs once: terms, classes, periods...
   useEffect(() => {
@@ -385,6 +387,13 @@ function Timetable() {
     yearById[y.id] = y.year;
   });
 
+  const currentTerm = terms.find((t) => t.id === termId);
+  const termLabel = currentTerm
+    ? `${prettyTermName(currentTerm.name)}${
+        yearById[currentTerm.academic_year] ? ` ${yearById[currentTerm.academic_year]}` : ""
+      }`
+    : "";
+
   const classById = {};
   classes.forEach((c) => {
     classById[c.id] = c;
@@ -482,6 +491,14 @@ function Timetable() {
                   ))}
                 </select>
               </div>
+              <button
+                type="button"
+                className="tt-btn tt-btn-light"
+                onClick={() => setPrinting(true)}
+              >
+                <Printer size={16} strokeWidth={1.75} />
+                Print / PDF
+              </button>
             </div>
           )}
         </div>
@@ -542,6 +559,18 @@ function Timetable() {
           onClose={() => setEditing(null)}
           onSaved={handleSaved}
           onCleared={handleCleared}
+        />
+      )}
+            {printing && (
+        <PrintTimetableDialog
+          mode="admin"
+          periods={periods}
+          lessons={lessons}
+          classes={classes}
+          teachers={teachers}
+          currentClassId={classId}
+          termLabel={termLabel}
+          onClose={() => setPrinting(false)}
         />
       )}
     </div>

@@ -4,6 +4,8 @@ import api from "../api/axios";
 import TimetableCalendar from "../components/TimetableCalendar";
 import { plural } from "../utils/format";
 import "./MyTimetable.css";
+import { Printer } from "lucide-react";
+import PrintTimetableDialog from "../components/PrintTimetableDialog";
 
 function PageShell({ children }) {
   return (
@@ -20,6 +22,7 @@ function MyTimetable() {
 
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [printing, setPrinting] = useState(false);
 
   useEffect(() => {
     if (!isTeacher && !isStudent) return;
@@ -96,8 +99,21 @@ function MyTimetable() {
   return (
     <PageShell>
       <div className="ttv-top">
-        <h1 className="ttv-title">Timetable</h1>
-        <p className="ttv-subtitle">{subtitle}</p>
+        <div>
+          <h1 className="ttv-title">Timetable</h1>
+          <p className="ttv-subtitle">{subtitle}</p>
+        </div>
+
+        {!emptyTitle && (
+          <button
+            type="button"
+            className="ttv-print-btn"
+            onClick={() => setPrinting(true)}
+          >
+            <Printer size={16} strokeWidth={1.75} />
+            Print / PDF
+          </button>
+        )}
       </div>
 
       {emptyTitle ? (
@@ -118,6 +134,16 @@ function MyTimetable() {
 
           <TimetableCalendar periods={periods} lessons={lessons} metaFor={metaFor} />
         </div>
+      )}
+      {printing && (
+        <PrintTimetableDialog
+          mode={isTeacher ? "teacher" : "student"}
+          periods={periods}
+          lessons={lessons}
+          termLabel={term ? term.label : ""}
+          ownerName={isTeacher ? user.full_name : className}
+          onClose={() => setPrinting(false)}
+        />
       )}
     </PageShell>
   );
