@@ -91,6 +91,33 @@
   border-radius: 6px;
 }
 
+.ttv-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ttv-print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 36px;
+  padding: 0 1rem;
+  background: #ffffff;
+  color: var(--ttv-text);
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ttv-print-btn:hover {
+  background: #f8f9fb;
+}
+
 @keyframes ttv-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
