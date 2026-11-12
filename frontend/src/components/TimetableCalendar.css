@@ -44,7 +44,7 @@
 }
 
 .cal-today-badge {
-  padding: 0.05rem 0.55rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 9999px;
   background: var(--cal-dark);
   color: #ffffff;
