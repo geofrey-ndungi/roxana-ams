@@ -4,11 +4,12 @@ import {
   Download,
   ClipboardCheck,
   ExternalLink,
-  ArrowRight,
-  TriangleAlert,
   CircleCheck,
   DoorOpen,
   RotateCw,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import api from "../api/axios";
 import "./TeacherDashboard.css";
@@ -177,9 +178,9 @@ function ComparisonChart({ data, view }) {
   }
 
   // Chart size and the empty space around the plotted area
-  const W = 560;
-  const H = 256;
-  const pad = { left: 44, right: 64, top: 22, bottom: 62 };
+  const W = 800;
+  const H = 236;
+  const pad = { left: 44, right: 40, top: 22, bottom: 48 };
   const plotW = W - pad.left - pad.right;
   const plotH = H - pad.top - pad.bottom;
 
@@ -202,8 +203,6 @@ function ComparisonChart({ data, view }) {
     points
       .map((p, i) => `${i === 0 ? "M" : "L"} ${xFor(i)} ${yFor(p[key])}`)
       .join(" ");
-
-  const todayIncluded = points.some((p) => p.key === data.today);
 
   // The day the mouse is on, and where to put the box.
   // The box is placed with percentages, so it follows the chart when it shrinks.
@@ -239,10 +238,6 @@ function ComparisonChart({ data, view }) {
           role="img"
           aria-label="Present and absent counts over time"
         >
-          <text className="td-chart-axis-title" x={pad.left} y={12}>
-            Recorded count
-          </text>
-
           {ticks.map((v) => (
             <g key={v}>
               <line
@@ -307,7 +302,7 @@ function ComparisonChart({ data, view }) {
                   r="4"
                 />
 
-                {same ? (
+                {i === points.length - 1 && same ? (
                   <text
                     className="td-chart-value"
                     x={x}
@@ -316,7 +311,7 @@ function ComparisonChart({ data, view }) {
                   >
                     {p.present} each
                   </text>
-                ) : (
+                ) : i === points.length - 1 ? (
                   <>
                     {/* The higher value goes above its point, the lower below,
                         so the two numbers never sit on top of each other. */}
@@ -337,7 +332,7 @@ function ComparisonChart({ data, view }) {
                       {p.absent}
                     </text>
                   </>
-                )}
+                ) : null}
 
                 <text
                   className="td-chart-xlabel"
@@ -412,17 +407,6 @@ function ComparisonChart({ data, view }) {
         </span>
       </div>
 
-      <p className="td-chart-note">
-        {view === "week"
-          ? `Showing the last ${plural(points.length, "recorded day")}.${
-              todayIncluded ? "" : " Today hasn't been recorded yet."
-            }${todayPartial ? " Today's register is not yet complete." : ""}`
-          : !marked
-          ? "Today's register hasn't been started."
-          : todayPartial
-          ? "Today's register is not yet complete."
-          : "Today's register is complete."}
-      </p>
     </div>
   );
 }
@@ -432,6 +416,9 @@ function TeacherDashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [view, setView] = useState("week"); // "day" or "week"
+  const [registerFilter, setRegisterFilter] = useState("ALL");
+  const [pageSize, setPageSize] = useState(5);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const loadDashboard = async () => {
     setError("");
@@ -494,6 +481,16 @@ function TeacherDashboard() {
   }
 
   const students = data.students;
+  const filteredStudents = students.filter((student) => {
+    if (registerFilter === "ALL") return true;
+    if (registerFilter === "NOT_MARKED") return !student.status;
+    return student.status === registerFilter;
+  });
+  const pageCount = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+  const pageStart = currentPage * pageSize;
+  const pageStudents = filteredStudents.slice(pageStart, pageStart + pageSize);
+  const shownFrom = filteredStudents.length === 0 ? 0 : pageStart + 1;
+  const shownTo = Math.min(pageStart + pageSize, filteredStudents.length);
   const total = data.student_count;
   const recorded = data.marked_count;
   const notMarkedCount = total - recorded;
@@ -514,8 +511,6 @@ function TeacherDashboard() {
 
   // With a few students the bar is one segment each. With a big class
   // that would be a row of tiny slivers, so we use one smooth bar.
-  const useSegments = total > 0 && total <= 12;
-
   // Downloads today's register as a CSV file that Excel can open.
   const exportReport = () => {
     const rows = [["Student", "Status"]];
@@ -548,37 +543,27 @@ function TeacherDashboard() {
       key: "PRESENT",
       label: "Present",
       value: data.counts.PRESENT,
-      sub: `of ${plural(total, "student")}`,
-      dot: "td-dot-present",
     },
     {
       key: "ABSENT",
       label: "Absent",
       value: data.counts.ABSENT,
-      sub: data.counts.ABSENT > 0 ? "needs review" : "none recorded",
-      dot: "td-dot-absent",
       alert: data.counts.ABSENT > 0,
     },
     {
       key: "NOT_MARKED",
       label: "Not marked",
       value: notMarkedCount,
-      sub: notMarkedCount > 0 ? "awaiting a status" : "register complete",
-      dot: "td-dot-warn",
     },
     {
       key: "LATE",
       label: "Late",
       value: data.counts.LATE,
-      sub: "recorded today",
-      dot: "td-dot-late",
     },
     {
       key: "EXCUSED",
       label: "Excused",
       value: data.counts.EXCUSED,
-      sub: "recorded today",
-      dot: "td-dot-excused",
     },
   ];
 
@@ -587,16 +572,15 @@ function TeacherDashboard() {
       {/* Title and buttons */}
       <div className="td-top">
         <div>
-          <h1 className="td-title">Class overview</h1>
           <div className="td-crumbs">
             <span>
               {data.school_class} · {data.academic_year}
             </span>
             <span className="td-sep">/</span>
             <span>{data.first_name}</span>
-            <span className="td-sep">/</span>
-            <span>{plural(total, "student")}</span>
           </div>
+          <h1 className="td-title">Class overview</h1>
+          <div className="td-date">{formatDayLong(data.today)}</div>
         </div>
 
         <div className="td-actions">
@@ -614,92 +598,88 @@ function TeacherDashboard() {
       {/* Today's attendance: the five numbers */}
       <div className="td-card">
         <div className="td-card-head">
-          <div className="td-head-left">
-            <h2 className="td-card-title">Today's attendance</h2>
-            <span className="td-muted">
-              {recorded} of {plural(total, "student")} recorded
-            </span>
-          </div>
-          <span className={`td-tag ${registerTag.cls}`}>{registerTag.text}</span>
+          <h2 className="td-card-title">Today's attendance</h2>
+          <span className={`td-tag ${registerTag.cls}`}>
+            {fullyMarked && <CircleCheck size={14} strokeWidth={2} />}
+            {registerTag.text}
+          </span>
         </div>
 
         <div className="td-stats">
           {stats.map((stat) => (
             <div className="td-stat" key={stat.key}>
               <div className="td-stat-label">
-                <span className={`td-dot ${stat.dot}`}></span>
                 {stat.label}
               </div>
               <div className={`td-stat-value ${stat.alert ? "td-stat-alert" : ""}`}>
                 {stat.value}
               </div>
-              <div className="td-stat-sub">{stat.sub}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Register completion and day comparison */}
+      {/* Weekly comparison and register summary */}
       <div className="td-row2">
-        <div className="td-card">
-          <h2 className="td-card-title">Register completion</h2>
-          <div className="td-muted td-under-title">
-            Today · {formatDayLong(data.today)}
-          </div>
-
-          <div className="td-fraction">
-            <span className="td-fraction-num">
-              {recorded} / {total}
-            </span>
-            <span className="td-muted">students recorded</span>
-          </div>
-
-          <div className="td-progress" aria-hidden="true">
-            {useSegments ? (
-              students.map((s, i) => (
-                <span
-                  key={s.enrollment_id}
-                  className={`td-seg ${i < recorded ? "td-seg-on" : ""}`}
-                ></span>
-              ))
-            ) : (
-              <span className="td-bar">
-                <span className="td-bar-fill" style={{ width: `${percentRecorded}%` }}></span>
+        <div className="td-summary-column">
+          <div className="td-card td-completion-card">
+            <h2 className="td-card-title">Register completion</h2>
+            <div className="td-fraction">
+              <span className="td-fraction-num">
+                {recorded} / {total}
               </span>
-            )}
+              <span className="td-muted">recorded</span>
+            </div>
+            <div
+              className="td-bar"
+              role="progressbar"
+              aria-label="Register completion"
+              aria-valuenow={recorded}
+              aria-valuemin={0}
+              aria-valuemax={total}
+            >
+              <span
+                className="td-bar-fill"
+                style={{ width: `${percentRecorded}%` }}
+              ></span>
+            </div>
           </div>
 
-          <div className={`td-notice ${fullyMarked ? "td-notice-ok" : ""}`}>
-            {fullyMarked ? (
-  <CircleCheck size={16} strokeWidth={1.75} />
-) : (
-  <TriangleAlert size={16} strokeWidth={1.75} />
-)}
-            <span>
-              {fullyMarked
-                ? "Register complete. Today's totals include every student."
-                : recorded === 0
-                ? "Attendance hasn't been recorded yet. Mark attendance to start today's register."
-                : `${plural(notMarkedCount, "student")} still ${
-                    notMarkedCount === 1 ? "needs" : "need"
-                  } a status. Complete the register before using today's totals.`}
-            </span>
+          <div className="td-card td-attention-card">
+            <h2 className="td-card-title">Needs attention</h2>
+            {unmarkedStudents.length === 0 && absentStudents.length === 0 ? (
+              <p className="td-clear">
+                <CircleCheck size={16} strokeWidth={1.75} />
+                Nothing needs attention
+              </p>
+            ) : (
+              <div className="td-attention">
+                {unmarkedStudents.length > 0 && (
+                  <div className="td-attention-item">
+                    <div className="td-attention-title">
+                      {plural(unmarkedStudents.length, "status")} not marked
+                    </div>
+                    <div className="td-muted">{listNames(unmarkedStudents)}</div>
+                  </div>
+                )}
+                {absentStudents.length > 0 && (
+                  <div className="td-attention-item">
+                    <div className="td-attention-title">
+                      {plural(absentStudents.length, "absence")}
+                    </div>
+                    <div className="td-muted">{listNames(absentStudents)} · Absent</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="td-card">
           <div className="td-chart-head">
-            <div>
-              <h2 className="td-card-title">
-                {view === "week" ? "Weekly comparison" : "Day comparison"}
-              </h2>
-              <div className="td-muted td-under-title">
-                {view === "week"
-                  ? "Recorded counts · last 7 recorded days"
-                  : "Recorded counts · today and the previous day"}
-              </div>
-            </div>
-
+            <h2 className="td-card-title">
+              {view === "week" ? "Weekly comparison" : "Day comparison"}
+            </h2>
             <div className="td-toggle" role="tablist" aria-label="Comparison range">
               <button
                 type="button"
@@ -726,7 +706,7 @@ function TeacherDashboard() {
         </div>
       </div>
 
-      {/* Student register and needs attention */}
+      {/* Student register */}
       <div className="td-row3">
         <div className="td-card td-card-flush">
           <div className="td-register-head">
@@ -734,7 +714,25 @@ function TeacherDashboard() {
               <h2 className="td-card-title">Student register</h2>
               <span className="td-count">{students.length}</span>
             </div>
-            <span className="td-muted">All students · Today</span>
+            <label className="td-filter-wrap">
+              <span className="td-visually-hidden">Filter students by attendance status</span>
+              <select
+                className="td-filter"
+                value={registerFilter}
+                onChange={(event) => {
+                  setRegisterFilter(event.target.value);
+                  setCurrentPage(0);
+                }}
+              >
+                <option value="ALL">All students · Today</option>
+                <option value="PRESENT">Present</option>
+                <option value="ABSENT">Absent</option>
+                <option value="LATE">Late</option>
+                <option value="EXCUSED">Excused</option>
+                <option value="NOT_MARKED">Not marked</option>
+              </select>
+              <ChevronDown size={14} aria-hidden="true" />
+            </label>
           </div>
 
           {students.length === 0 ? (
@@ -745,19 +743,23 @@ function TeacherDashboard() {
                 will appear here.
               </p>
             </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="td-empty-panel">
+              <div className="td-empty-title">No students match this filter</div>
+            </div>
           ) : (
             <div className="td-table-wrap">
               <table className="td-table">
                 <thead>
                   <tr>
                     <th>Student</th>
-                    <th>Today's status</th>
+                    <th>Status</th>
                     <th className="td-col-follow">Follow-up</th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map((student) => {
+                  {pageStudents.map((student) => {
                     const info = student.status
                       ? statusInfo[student.status]
                       : notMarkedInfo;
@@ -769,7 +771,7 @@ function TeacherDashboard() {
                             {student.photo ? (
                               <img
                                 src={student.photo}
-                                alt={student.name}
+                                alt=""
                                 className="td-avatar"
                               />
                             ) : (
@@ -781,10 +783,12 @@ function TeacherDashboard() {
                         <td>
                           <span className={`td-chip ${info.chip}`}>{info.label}</span>
                         </td>
-                        <td className="td-col-follow td-follow">{info.follow}</td>
+                        <td className={`td-col-follow td-follow ${student.status === "ABSENT" ? "td-follow-alert" : ""}`}>
+                          {student.status === "PRESENT" ? "—" : info.follow}
+                        </td>
                         <td>
                           <Link to="/attendance" className="td-action">
-                            {student.status ? "View record" : "Mark status"}
+                            View
                             <ExternalLink size={12} strokeWidth={1.75} />
                           </Link>
                         </td>
@@ -797,57 +801,42 @@ function TeacherDashboard() {
           )}
 
           <div className="td-table-foot">
-            Showing all {plural(students.length, "student")} in {data.school_class}
+            <label className="td-page-size-label">
+              Rows per page
+              <select
+                value={pageSize}
+                onChange={(event) => {
+                  setPageSize(Number(event.target.value));
+                  setCurrentPage(0);
+                }}
+                aria-label="Rows per page"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+              </select>
+            </label>
+            <span>{shownFrom}–{shownTo} of {filteredStudents.length}</span>
+            <div className="td-pagination">
+              <button
+                type="button"
+                aria-label="Previous page"
+                disabled={currentPage === 0}
+                onClick={() => setCurrentPage((page) => page - 1)}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                type="button"
+                aria-label="Next page"
+                disabled={currentPage >= pageCount - 1}
+                onClick={() => setCurrentPage((page) => page + 1)}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
           </div>
         </div>
-
-        <div className="td-card">
-          <h2 className="td-card-title">Needs attention</h2>
-          <div className="td-muted td-under-title">Attendance follow-up for today</div>
-
-          {unmarkedStudents.length === 0 && absentStudents.length === 0 ? (
-            <p className="td-clear">
-              <CircleCheck size={16} strokeWidth={1.75} /> Nothing needs attention
-              right now.
-            </p>
-          ) : (
-            <div className="td-attention">
-              {unmarkedStudents.length > 0 && (
-                <div className="td-attention-item">
-                  <div className="td-attention-title">
-                    Record {plural(unmarkedStudents.length, "remaining status", "remaining statuses")}
-                  </div>
-                  <div className="td-muted">
-                    {listNames(unmarkedStudents)} · Not marked
-                  </div>
-                  <Link to="/attendance" className="td-attention-link">
-                    Open attendance <ExternalLink size={12} strokeWidth={1.75} />
-                  </Link>
-                </div>
-              )}
-
-              {absentStudents.length > 0 && (
-                <div className="td-attention-item">
-                  <div className="td-attention-title">
-                    Review {plural(absentStudents.length, "absence")}
-                  </div>
-                  <div className="td-muted">{listNames(absentStudents)} · Absent</div>
-                  <p className="td-attention-note">
-                    Absence reason and contact history are not available in this
-                    report.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="td-footer">
-        <span>
-          {data.school_class} · {data.academic_year}
-        </span>
-        <span>Today's figures include recorded statuses only.</span>
       </div>
     </DashboardShell>
   );
