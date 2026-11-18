@@ -128,6 +128,45 @@
   flex-shrink: 0;
 }
 
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-group-toggle {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-group-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.nav-group-chevron.open {
+  transform: rotate(180deg);
+}
+
+.nav-group-children {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-child {
+  height: 40px;
+  padding-left: 2.45rem;
+  font-size: 0.82rem;
+}
+
+.nav-child .nav-icon {
+  margin-right: 0.75rem;
+}
+
 /* Pages that don't exist yet */
 .nav-item-soon {
   opacity: 0.55;
@@ -261,6 +300,15 @@
   .sidebar-collapsed .sidebar-label,
   .sidebar-collapsed .soon-pill {
     display: none;
+  }
+
+  .sidebar-collapsed .nav-group-chevron {
+    display: none;
+  }
+
+  .sidebar-collapsed .nav-child {
+    padding: 0;
+    justify-content: center;
   }
 
   .sidebar-collapsed .nav-item {
