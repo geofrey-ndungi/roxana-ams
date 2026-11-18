@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { LogOut, ChevronLeft, Menu, X } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import { LogOut, ChevronLeft, ChevronDown, Menu, X } from "lucide-react";
 import logo from "../assets/logo2.jpg"; // keep the same file name you had before
 import "./Sidebar.css";
 
@@ -14,6 +14,10 @@ function Sidebar({
 }) {
   const [collapsed, setCollapsed] = useState(false); // desktop: 240px or 72px
   const [mobileOpen, setMobileOpen] = useState(false); // phone: drawer open?
+  const location = useLocation();
+  const [examinationsOpen, setExaminationsOpen] = useState(null);
+  const isExaminationsOpen =
+    examinationsOpen ?? location.pathname.startsWith("/examinations/");
 
   // Turns "Ian Mwangi" into "IM", used when there is no photo.
   const getInitials = (name) => {
@@ -26,6 +30,50 @@ function Sidebar({
 
   const renderItem = (item) => {
     const Icon = item.icon; // a capital letter tells React this is a component
+
+    if (item.children) {
+      return (
+        <div className="nav-group" key={item.label}>
+          <button
+            type="button"
+            className={`nav-item nav-group-toggle ${
+              location.pathname.startsWith("/examinations/") ? "active" : ""
+            }`}
+            aria-expanded={isExaminationsOpen}
+            onClick={() => setExaminationsOpen(!isExaminationsOpen)}
+          >
+            <Icon className="nav-icon" size={20} strokeWidth={1.75} />
+            <span className="sidebar-label">{item.label}</span>
+            <ChevronDown
+              className={`nav-group-chevron ${isExaminationsOpen ? "open" : ""}`}
+              size={15}
+            />
+          </button>
+          {isExaminationsOpen && (
+            <div className="nav-group-children">
+              {item.children.map((child) => (
+                <NavLink
+                  key={child.label}
+                  to={child.to}
+                  title={child.label}
+                  className={({ isActive }) =>
+                    `nav-item nav-child ${isActive ? "active" : ""}`
+                  }
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <child.icon
+                    className="nav-icon"
+                    size={18}
+                    strokeWidth={1.75}
+                  />
+                  <span className="sidebar-label">{child.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
 
     // A page that doesn't exist yet: not a link, just a greyed row.
     if (item.soon) {
