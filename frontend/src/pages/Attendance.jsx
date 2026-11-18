@@ -342,7 +342,6 @@ function Attendance() {
                 </span>
               )}
             </div>
-            <span className="at-hint">Select a status for each student</span>
           </div>
 
           <div className="at-cols">
