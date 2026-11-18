@@ -1,5 +1,17 @@
 from django.contrib import admin
-from .models import AcademicYear, Term ,SchoolClass, Subject, Enrollment, Attendance ,Period, Lesson
+from .models import (
+    AcademicYear,
+    Term,
+    SchoolClass,
+    Subject,
+    Enrollment,
+    Attendance,
+    Period,
+    Lesson,
+    Examination,
+    ExaminationSubject,
+    ExaminationMark,
+)
 
 
 class TermInline(admin.TabularInline):
@@ -51,3 +63,22 @@ class LessonAdmin(admin.ModelAdmin):
     ]
     list_filter = ["term", "school_class", "teacher", "day"]
     list_select_related = ["term", "school_class", "period", "subject", "teacher"]
+
+
+class ExaminationSubjectInline(admin.TabularInline):
+    model = ExaminationSubject
+    extra = 0
+    readonly_fields = ["submitted_at"]
+
+
+@admin.register(Examination)
+class ExaminationAdmin(admin.ModelAdmin):
+    list_display = ["title", "school_class", "term", "released_at", "include_rankings"]
+    list_filter = ["term", "school_class", "released_at"]
+    inlines = [ExaminationSubjectInline]
+
+
+@admin.register(ExaminationMark)
+class ExaminationMarkAdmin(admin.ModelAdmin):
+    list_display = ["enrollment", "examination_subject", "score", "updated_at"]
+    list_filter = ["examination_subject__examination", "examination_subject__subject"]
