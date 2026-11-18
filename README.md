@@ -51,7 +51,7 @@ The application follows a full-stack architecture, combining a **Django REST Fra
 
 The project is organized into dedicated Django applications, including `accounts` and `academics`, allowing different areas of the system to be maintained independently.
 
-The current frontend provides authentication and protected application routes for the dashboard, subjects, attendance, student profiles, personal attendance, and timetables.
+The current frontend provides authentication and protected application routes for the dashboard, subjects, attendance, student profiles, personal attendance, timetables, and examinations.
 
 ## Features
 
@@ -66,6 +66,7 @@ Roxana AMS currently includes the following application modules:
 | Student Profiles | Dedicated student profile interface. |
 | Personal Attendance | Individual attendance records and views. |
 | Timetable Management | Access to academic timetables and schedules. |
+| Examinations | Teacher mark entry, admin-controlled result release, report cards, and exam analytics for Grades 4–9. |
 
 **Note:** Feature availability and access permissions depend on the backend implementation and the roles assigned to individual users.
 
@@ -91,6 +92,29 @@ The `python manage.py seed_periods` command creates or updates the standard scho
 
 Assembly, breaks, lunch, and games are fixed timetable activities rather than editable lessons.
 Adjacent lesson periods can be marked as a double lesson; the setting is saved with the lesson, and the next period must be free.
+
+### Examinations and Report Cards
+
+Administrators create an examination for a class and term. Its subjects and assigned teachers are taken from the timetable, so each assigned teacher enters marks for every enrolled student and submits their subject before the administrator can release results. Marks are entered out of 100; the system calculates the percentage, grade, and points.
+
+The grade bands are:
+
+| Class levels | Percentage | Grade | Points |
+|---|---:|---|---:|
+| Grades 4–6 | 80–100 | EE | 4 |
+| Grades 4–6 | 65–<80 | ME | 3 |
+| Grades 4–6 | 50–<65 | AE | 2 |
+| Grades 4–6 | 0–<50 | BE | 1 |
+| Grades 7–9 | 90–100 | EE1 | 8 |
+| Grades 7–9 | 75–<90 | EE2 | 7 |
+| Grades 7–9 | 58–<75 | ME1 | 6 |
+| Grades 7–9 | 41–<58 | ME2 | 5 |
+| Grades 7–9 | 31–<41 | AE1 | 4 |
+| Grades 7–9 | 21–<31 | AE2 | 3 |
+| Grades 7–9 | 11–<21 | BE1 | 2 |
+| Grades 7–9 | 0–<11 | BE2 | 1 |
+
+When releasing results, an administrator can choose whether to include rankings. Students never receive ranking data. If enabled, administrators can see overall and subject rankings; a teacher can see rankings only for subjects they teach, and the assigned class teacher can also see the overall ranking for their class. Report card PDFs do not include rankings.
 
 ## Technology Stack
 
