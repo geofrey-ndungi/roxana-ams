@@ -13,6 +13,15 @@ from .views import (AcademicYearViewSet,
                     TeacherListView, 
                     MyTimetableView,
 )
+from .examination_views import (
+    ExaminationAnalyticsView,
+    ExaminationListCreateView,
+    ExaminationReleaseView,
+    ExaminationResultsView,
+    ExaminationSubjectListView,
+    ExaminationSubjectMarksView,
+    ExaminationSubjectSubmitView,
+)
 
 
 
@@ -27,6 +36,37 @@ router.register(r"attendance", AttendanceViewSet)
 router.register(r"periods", PeriodViewSet)
 router.register(r"lessons", LessonViewSet)
 urlpatterns = router.urls + [
+    path("examinations/", ExaminationListCreateView.as_view(), name="examinations"),
+    path(
+        "examinations/<int:pk>/release/",
+        ExaminationReleaseView.as_view(),
+        name="examination-release",
+    ),
+    path(
+        "examination-subjects/",
+        ExaminationSubjectListView.as_view(),
+        name="examination-subjects",
+    ),
+    path(
+        "examination-subjects/<int:pk>/marks/",
+        ExaminationSubjectMarksView.as_view(),
+        name="examination-subject-marks",
+    ),
+    path(
+        "examination-subjects/<int:pk>/submit/",
+        ExaminationSubjectSubmitView.as_view(),
+        name="examination-subject-submit",
+    ),
+    path(
+        "examination-results/",
+        ExaminationResultsView.as_view(),
+        name="examination-results",
+    ),
+    path(
+        "examination-analytics/",
+        ExaminationAnalyticsView.as_view(),
+        name="examination-analytics",
+    ),
     path("profile/me/", MyProfileView.as_view(), name="my-profile"),
     path("teacher/dashboard/", TeacherDashboardView.as_view(), name="teacher-dashboard"),
     path("admin/dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
