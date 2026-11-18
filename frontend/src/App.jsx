@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Login from "./pages/Login";
 import Subjects from "./pages/Subjects";
-import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Attendance from "./pages/Attendance";
 import StudentProfile from "./pages/StudentProfile";
@@ -10,6 +10,9 @@ import RoleHome from "./components/RoleHome";
 import Dashboard from "./pages/Dashboard";
 import MyAttendance from "./pages/MyAttendance";
 import TimetableHome from "./pages/TimetableHome";
+import Examinations from "./pages/Examinations";
+import ReportCards from "./pages/ReportCards";
+import ExamAnalytics from "./pages/ExamAnalytics";
 
 
 
@@ -55,6 +58,9 @@ function App() {
         <Route path="/profile" element={<StudentProfile />} />
         <Route path="/my-attendance" element={<MyAttendance />} />
         <Route path="/timetable" element={<TimetableHome />} />        
+        <Route path="/examinations/results" element={<Examinations />} />
+        <Route path="/examinations/report-cards" element={<ReportCards />} />
+        <Route path="/examinations/analytics" element={<ExamAnalytics />} />
       </Route>
     </Routes>
   );
