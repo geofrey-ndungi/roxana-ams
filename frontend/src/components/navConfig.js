@@ -3,6 +3,7 @@ import {
   User,
   BookOpen,
   ClipboardCheck,
+  ChartNoAxesCombined,
   CalendarDays,
   MessageSquare,
   Library,
@@ -13,6 +14,7 @@ import {
   CalendarRange,
   Clock,
   Mail,
+  FileText,
 } from "lucide-react";
 
 // An item with a "to" is a real page. An item with soon: true is greyed out.
@@ -25,6 +27,14 @@ export const studentNav = {
     { label: "Subjects", icon: BookOpen, to: "/subjects" },
     { label: "Attendance", icon: ClipboardCheck, to: "/my-attendance" },
     { label: "Timetable", icon: CalendarDays, to: "/timetable" },
+    {
+      label: "Examinations",
+      icon: ClipboardCheck,
+      children: [
+        { label: "Results", icon: ClipboardCheck, to: "/examinations/results" },
+        { label: "Report Cards", icon: FileText, to: "/examinations/report-cards" },
+      ],
+    },
     { label: "Messages", icon: MessageSquare, soon: true },
   ],
   sectionTitle: "My School",
@@ -40,6 +50,15 @@ export const teacherNav = {
     { label: "Attendance", icon: ClipboardCheck, to: "/attendance" },
     { label: "Subjects", icon: BookOpen, to: "/subjects" },
     { label: "Timetable", icon: CalendarDays, to: "/timetable" },
+    {
+      label: "Examinations",
+      icon: ClipboardCheck,
+      children: [
+        { label: "Results", icon: ClipboardCheck, to: "/examinations/results" },
+        { label: "Report Cards", icon: FileText, to: "/examinations/report-cards" },
+        { label: "Analytics", icon: ChartNoAxesCombined, to: "/examinations/analytics" },
+      ],
+    },
     { label: "Messages", icon: MessageSquare, soon: true },
   ],
   sectionTitle: "",
@@ -56,6 +75,15 @@ export const adminNav = {
     { label: "Subjects", icon: BookOpen, to: "/subjects" },
     { label: "Academic years", icon: CalendarRange, soon: true },
     { label: "Timetable", icon: Clock, to: "/timetable" },
+    {
+      label: "Examinations",
+      icon: ClipboardCheck,
+      children: [
+        { label: "Results", icon: ClipboardCheck, to: "/examinations/results" },
+        { label: "Report Cards", icon: FileText, to: "/examinations/report-cards" },
+        { label: "Analytics", icon: ChartNoAxesCombined, to: "/examinations/analytics" },
+      ],
+    },
     { label: "Messages", icon: Mail, soon: true },
   ],
   sectionTitle: "",
