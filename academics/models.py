@@ -255,3 +255,83 @@ class Lesson(models.Model):
             raise ValidationError(
                 {"teacher": "This teacher already has a double lesson in the previous period."}
             )
+
+
+class Examination(models.Model):
+    title = models.CharField(max_length=100)
+    term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="examinations")
+    school_class = models.ForeignKey(
+        SchoolClass, on_delete=models.PROTECT, related_name="examinations"
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="examinations_created",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    released_at = models.DateTimeField(null=True, blank=True)
+    include_rankings = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at", "title"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["title", "term", "school_class"],
+                name="unique_exam_title_per_class_term",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.title} - {self.school_class} ({self.term})"
+
+
+class ExaminationSubject(models.Model):
+    examination = models.ForeignKey(
+        Examination, on_delete=models.CASCADE, related_name="exam_subjects"
+    )
+    subject = models.ForeignKey(
+        Subject, on_delete=models.PROTECT, related_name="examination_subjects"
+    )
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="examination_subjects",
+        limit_choices_to={"role": "TEACHER"},
+    )
+    max_score = models.DecimalField(max_digits=7, decimal_places=2, default=100)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["subject__name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["examination", "subject"],
+                name="unique_subject_per_examination",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.examination}: {self.subject}"
+
+
+class ExaminationMark(models.Model):
+    examination_subject = models.ForeignKey(
+        ExaminationSubject, on_delete=models.CASCADE, related_name="marks"
+    )
+    enrollment = models.ForeignKey(
+        Enrollment, on_delete=models.CASCADE, related_name="examination_marks"
+    )
+    score = models.DecimalField(max_digits=7, decimal_places=2)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["enrollment__student__last_name", "enrollment__student__first_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["examination_subject", "enrollment"],
+                name="unique_mark_per_exam_subject_enrollment",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.enrollment} - {self.examination_subject}: {self.score}"
