@@ -1,29 +1,12 @@
 import { useState, useEffect } from "react";
-import {
-  Download,
-  TriangleAlert,
-  Search,
-  CircleCheck,
-  ExternalLink,
-  Plus,
-  DoorOpen,
-  RotateCw,
-} from "lucide-react";
+import { Download, TriangleAlert, Search, ExternalLink, Plus, RotateCw } from "lucide-react";
 import api from "../api/axios";
-import {
-  formatDayLong,
-  formatWeekdayShort,
-  formatMonthDay,
-  plural,
-  listNames,
-  downloadCsv,
-} from "../utils/format";
+import { formatDayLong, downloadCsv, plural, listNames } from "../utils/format";
 import "./AdminDashboard.css";
 
 // Django's own admin site, where classes and teachers are managed for now.
 const ADMIN_URL = `http://${window.location.hostname}:8000/admin/`;
 
-// How each class status looks in the table
 const classStatus = {
   RECORDED: { label: "Recorded", cls: "ad-chip-ok" },
   PARTLY_RECORDED: { label: "Partly recorded", cls: "ad-chip-warn" },
@@ -47,20 +30,20 @@ function DashboardSkeleton() {
         <div className="ad-skel-bar" style={{ width: 280, marginTop: 12 }}></div>
       </div>
       <div className="ad-card ad-skeleton">
-        <div className="ad-skel-block" style={{ height: 80 }}></div>
+        <div className="ad-skel-block" style={{ height: 100 }}></div>
       </div>
       <div className="ad-card ad-skeleton">
-        <div className="ad-skel-block" style={{ height: 220 }}></div>
+        <div className="ad-skel-block" style={{ height: 320 }}></div>
       </div>
       <div className="ad-card ad-skeleton">
-        <div className="ad-skel-block" style={{ height: 260 }}></div>
+        <div className="ad-skel-block" style={{ height: 400 }}></div>
       </div>
     </>
   );
 }
 
 // Line chart of the school's present rate over the last recorded days.
-// It is plain SVG. Every position is worked out from the rates.
+// Plain SVG, kept clean with an area fill and no clutter.
 function RateTrendChart({ trend, today }) {
   const points = trend.filter((day) => day.rate !== null);
 
@@ -68,21 +51,17 @@ function RateTrendChart({ trend, today }) {
     return (
       <div className="ad-chart-empty">
         <div className="ad-chart-empty-title">Not enough days recorded yet</div>
-        <p>
-          The trend needs at least 3 school days with recorded attendance. It
-          will appear here as soon as there are.
-        </p>
+        <p>The trend will appear here as soon as there are at least 3 recorded school days.</p>
       </div>
     );
   }
 
-  const W = 640;
-  const H = 240;
-  const pad = { left: 46, right: 24, top: 28, bottom: 52 };
+  const W = 700;
+  const H = 220;
+  const pad = { left: 44, right: 24, top: 24, bottom: 46 };
   const plotW = W - pad.left - pad.right;
   const plotH = H - pad.top - pad.bottom;
 
-  // Choose a window a little wider than the data, in neat steps.
   const rates = points.map((p) => p.rate);
   let low = Math.max(0, Math.floor((Math.min(...rates) - 2) / 5) * 5);
   let high = Math.min(100, Math.ceil((Math.max(...rates) + 2) / 5) * 5);
@@ -95,67 +74,41 @@ function RateTrendChart({ trend, today }) {
   const ticks = [];
   for (let t = low; t <= high; t += step) ticks.push(t);
 
-  const xFor = (i) =>
-    pad.left + plotW * (0.05 + 0.9 * (i / (points.length - 1)));
-  const yFor = (rate) =>
-    pad.top + plotH * (1 - (rate - low) / (high - low));
+  const xFor = (i) => pad.left + plotW * (0.05 + 0.9 * (i / (points.length - 1)));
+  const yFor = (rate) => pad.top + plotH * (1 - (rate - low) / (high - low));
 
   const linePoints = points.map((p, i) => `${xFor(i)},${yFor(p.rate)}`).join(" ");
+  const areaPoints = `${linePoints} L${pad.left + plotW},${pad.top + plotH} L${pad.left},${pad.top + plotH} Z`;
 
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="ad-chart"
-      role="img"
-      aria-label="Present rate for the last recorded days"
-    >
+    <svg viewBox={`0 0 ${W} ${H}`} className="ad-chart" role="img" aria-label="Present rate trend">
+      <defs>
+        <linearGradient id="adGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
       {ticks.map((t) => (
         <g key={t}>
-          <line
-            className="ad-chart-grid"
-            x1={pad.left}
-            x2={W - pad.right}
-            y1={yFor(t)}
-            y2={yFor(t)}
-          />
-          <text
-            className="ad-chart-tick"
-            x={pad.left - 8}
-            y={yFor(t) + 4}
-            textAnchor="end"
-          >
+          <line className="ad-chart-grid" x1={pad.left} x2={W - pad.right} y1={yFor(t)} y2={yFor(t)} />
+          <text className="ad-chart-tick" x={pad.left - 8} y={yFor(t) + 4} textAnchor="end">
             {t}%
           </text>
         </g>
       ))}
 
+      <path className="ad-chart-area" d={areaPoints} />
       <polyline className="ad-chart-line" points={linePoints} />
 
       {points.map((p, i) => {
         const x = xFor(i);
         const isToday = p.date === today;
-
         return (
           <g key={p.date}>
-            <circle className="ad-chart-pt" cx={x} cy={yFor(p.rate)} r="4" />
-            <text
-              className="ad-chart-value"
-              x={x}
-              y={yFor(p.rate) - 10}
-              textAnchor="middle"
-            >
-              {p.rate}%
-            </text>
-            <text
-              className={`ad-chart-xlabel ${isToday ? "ad-chart-today" : ""}`}
-              x={x}
-              y={H - 28}
-              textAnchor="middle"
-            >
-              {isToday ? "Today" : formatWeekdayShort(p.date)}
-            </text>
-            <text className="ad-chart-xsub" x={x} y={H - 12} textAnchor="middle">
-              {formatMonthDay(p.date)}
+            <circle className={`ad-chart-pt ${isToday ? "ad-chart-pt-today" : ""}`} cx={x} cy={yFor(p.rate)} r="4" />
+            <text className="ad-chart-xlabel" x={x} y={H - 22} textAnchor="middle">
+              {isToday ? "Today" : p.date.slice(5)}
             </text>
           </g>
         );
@@ -211,27 +164,17 @@ function AdminDashboard() {
     return (
       <DashboardShell>
         <div className="ad-card ad-empty-card">
-          <div className="ad-empty-icon">
-            <DoorOpen size={26} strokeWidth={1.5} />
-          </div>
-          <h2 className="ad-empty-title">No classes created yet</h2>
+          <div className="ad-empty-icon"><Plus size={26} strokeWidth={1.5} /></div>
+          <h2 className="ad-empty-title">No classes yet</h2>
           <p className="ad-empty-text">
-            Get started by creating your first class and assigning a class
-            teacher, so attendance can be recorded.
+            Create your first class and assign a teacher so attendance can be recorded.
           </p>
           <div className="ad-empty-actions">
-            <a
-              className="ad-btn ad-btn-dark"
-              href={`${ADMIN_URL}academics/schoolclass/add/`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Plus size={16} strokeWidth={1.75} />
-              Create first class
+            <a className="ad-btn ad-btn-dark" href={`${ADMIN_URL}academics/schoolclass/add/`} target="_blank" rel="noreferrer">
+              <Plus size={16} strokeWidth={1.75} /> Create first class
             </a>
             <button type="button" className="ad-btn ad-btn-light" onClick={loadDashboard}>
-              <RotateCw size={16} strokeWidth={1.75} />
-              Check again
+              <RotateCw size={16} strokeWidth={1.75} /> Check again
             </button>
           </div>
         </div>
@@ -244,7 +187,6 @@ function AdminDashboard() {
   const noTeacher = attention.no_teacher;
   const attentionCount = missing.length + noTeacher.length;
 
-  // Percent of ALL students, to one decimal place
   const pct = (n) => (totals.students ? ((n / totals.students) * 100).toFixed(1) : "0.0");
 
   // The small tag on the attendance card
@@ -262,18 +204,10 @@ function AdminDashboard() {
     : "0.0";
 
   const totalTiles = [
-    { label: "Students", tag: "Enrolled", value: totals.students },
-    { label: "Teachers", tag: "Active", value: totals.teachers },
-    { label: "Classes", tag: "Total", value: totals.classes },
-    { label: "Subjects", tag: "Total", value: totals.subjects },
-  ];
-
-  const numbers = [
-    { label: "Present", value: attendance.counts.PRESENT, dot: "ad-dot-present" },
-    { label: "Absent", value: attendance.counts.ABSENT, dot: "ad-dot-absent" },
-    { label: "Late", value: attendance.counts.LATE, dot: "ad-dot-late" },
-    { label: "Excused", value: attendance.counts.EXCUSED, dot: "ad-dot-excused" },
-    { label: "Not marked", value: attendance.not_marked, dot: "ad-dot-warn" },
+    { label: "Students", value: totals.students },
+    { label: "Teachers", value: totals.teachers },
+    { label: "Classes", value: totals.classes },
+    { label: "Subjects", value: totals.subjects },
   ];
 
   // Search and status filter for the classes table
@@ -287,7 +221,6 @@ function AdminDashboard() {
     return matchesQuery && matchesStatus;
   });
 
-  // Downloads the classes table as a CSV file
   const exportReport = () => {
     const rows = [
       ["Class", "Class teacher", "Students", "Recorded today", "Status", "Present rate"],
@@ -311,24 +244,18 @@ function AdminDashboard() {
       <div className="ad-top">
         <div>
           <h1 className="ad-title">School overview</h1>
-          <p className="ad-subtitle">
-            Academic year {data.academic_year} / {formatDayLong(data.today)}
-          </p>
+          <p className="ad-subtitle">{data.academic_year} · {formatDayLong(data.today)}</p>
         </div>
         <button type="button" className="ad-btn ad-btn-light" onClick={exportReport}>
-          <Download size={16} strokeWidth={1.75} />
-          Export report
+          <Download size={16} strokeWidth={1.75} /> Export report
         </button>
       </div>
 
-      {/* Totals */}
-      <div className="ad-card ad-totals">
+      {/* Totals strip */}
+      <div className="ad-totals">
         {totalTiles.map((tile) => (
           <div className="ad-total" key={tile.label}>
-            <div className="ad-total-top">
-              <span className="ad-total-label">{tile.label}</span>
-              <span className="ad-total-tag">{tile.tag}</span>
-            </div>
+            <span className="ad-total-label">{tile.label}</span>
             <div className="ad-total-value">{tile.value}</div>
           </div>
         ))}
@@ -340,49 +267,51 @@ function AdminDashboard() {
           <div className="ad-card ad-pad">
             <div className="ad-card-head">
               <div>
-                <h2 className="ad-card-title">Today's attendance, whole school</h2>
-                
+                <h2 className="ad-card-title">Today's attendance</h2>
+                <span className={`ad-tag ${registerTag.cls}`}>{registerTag.text}</span>
               </div>
-              <span className={`ad-tag ${registerTag.cls}`}>{registerTag.text}</span>
             </div>
 
-            <div className="ad-numbers">
-              {numbers.map((item) => (
-                <div key={item.label}>
-                  <div className="ad-number-label">
-                    <span className={`ad-dot ${item.dot}`}></span>
-                    <span>
-                      {item.label} ({pct(item.value)}%)
-                    </span>
-                  </div>
-                  <div className="ad-number-value">{item.value}</div>
-                </div>
-              ))}
+            <div className="ad-attendance-grid">
+              <div className="ad-attn-metric">
+                <span className="ad-metric-label">Present</span>
+                <span className="ad-metric-value">{attendance.counts.PRESENT}</span>
+                <span className="ad-metric-sub">{pct(attendance.counts.PRESENT)}% of students</span>
+              </div>
+              <div className="ad-attn-metric">
+                <span className="ad-metric-label">Absent</span>
+                <span className="ad-metric-value">{attendance.counts.ABSENT}</span>
+                <span className="ad-metric-sub">{pct(attendance.counts.ABSENT)}% of students</span>
+              </div>
+              <div className="ad-attn-metric">
+                <span className="ad-metric-label">Late</span>
+                <span className="ad-metric-value">{attendance.counts.LATE}</span>
+                <span className="ad-metric-sub">{pct(attendance.counts.LATE)}% of students</span>
+              </div>
+              <div className="ad-attn-metric">
+                <span className="ad-metric-label">Excused</span>
+                <span className="ad-metric-value">{attendance.counts.EXCUSED}</span>
+                <span className="ad-metric-sub">{pct(attendance.counts.EXCUSED)}% of students</span>
+              </div>
             </div>
 
             <div className="ad-classes-recorded">
               <div className="ad-classes-recorded-row">
                 <span className="ad-strong">Classes recorded</span>
                 <span className="ad-strong">
-                  {attendance.classes_recorded} / {attendance.classes_total} classes (
-                  {classesPct}%)
+                  {attendance.classes_recorded} / {attendance.classes_total} ({classesPct}%)
                 </span>
               </div>
-
               <div className="ad-progress">
-                <div
-                  className="ad-progress-fill"
-                  style={{ width: `${classesPct}%` }}
-                ></div>
+                <div className="ad-progress-fill" style={{ width: `${classesPct}%` }}></div>
               </div>
 
               {missing.length > 0 && (
                 <div className="ad-warning">
                   <TriangleAlert size={16} strokeWidth={1.75} />
                   <span>
-                    {plural(missing.length, "class", "classes")}{" "}
-                    {missing.length === 1 ? "has" : "have"} not recorded attendance
-                    yet ({listNames(missing.map((c) => c.name))})
+                    {plural(missing.length, "class", "classes")} {missing.length === 1 ? "has" : "have"} not recorded
+                    attendance yet ({listNames(missing.map((c) => c.name))})
                   </span>
                 </div>
               )}
@@ -394,7 +323,7 @@ function AdminDashboard() {
             <div className="ad-card-head">
               <div>
                 <h2 className="ad-card-title">Attendance trend</h2>
-                <p className="ad-muted">Present rate over the last 7 recorded days</p>
+                <p className="ad-muted">Present rate over the last recorded days</p>
               </div>
             </div>
             <RateTrendChart trend={trend} today={data.today} />
@@ -412,9 +341,7 @@ function AdminDashboard() {
 
           {attentionCount === 0 ? (
             <div className="ad-clear">
-              <div className="ad-clear-icon">
-                <CircleCheck size={20} strokeWidth={1.75} />
-              </div>
+              <div className="ad-clear-icon"><span className="ad-check">✓</span></div>
               <div className="ad-clear-title">All caught up</div>
               <p>Every class has recorded attendance and an assigned class teacher.</p>
             </div>
@@ -425,12 +352,7 @@ function AdminDashboard() {
                   <span className="ad-group-title">Classes without attendance today</span>
                   {missing.map((c) => (
                     <div className="ad-attn-row" key={c.id}>
-                      <div>
-                        <div className="ad-attn-name">{c.name}</div>
-                        <div className="ad-muted-small">
-                          {c.teacher ? `Teacher: ${c.teacher}` : "No class teacher"}
-                        </div>
-                      </div>
+                      <div className="ad-attn-name">{c.name}</div>
                       <span className="ad-chip ad-chip-warn">Not marked</span>
                     </div>
                   ))}
@@ -444,16 +366,9 @@ function AdminDashboard() {
                     <div className="ad-unassigned" key={c.id}>
                       <div>
                         <div className="ad-attn-name">{c.name}</div>
-                        <div className="ad-unassigned-sub">
-                          {plural(c.student_count, "student")} • Unassigned
-                        </div>
+                        <div className="ad-unassigned-sub">{plural(c.student_count, "student")} · Unassigned</div>
                       </div>
-                      <a
-                        className="ad-assign"
-                        href={`${ADMIN_URL}academics/schoolclass/${c.id}/change/`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      <a className="ad-assign" href={`${ADMIN_URL}academics/schoolclass/${c.id}/change/`} target="_blank" rel="noreferrer">
                         Assign
                       </a>
                     </div>
@@ -472,7 +387,6 @@ function AdminDashboard() {
             <h2 className="ad-card-title">Classes</h2>
             <span className="ad-count">{classes.length}</span>
           </div>
-
           <div className="ad-filters">
             <div className="ad-search">
               <Search size={14} strokeWidth={1.75} />
@@ -483,12 +397,7 @@ function AdminDashboard() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
-            <select
-              className="ad-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
+            <select className="ad-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="ALL">All statuses</option>
               <option value="RECORDED">Recorded</option>
               <option value="PARTLY_RECORDED">Partly recorded</option>
@@ -531,24 +440,11 @@ function AdminDashboard() {
                     {c.rate === null ? (
                       <span className="ad-faint">—</span>
                     ) : (
-                      <div className="ad-rate">
-                        <span>{c.rate}%</span>
-                        <div className="ad-mini-bar">
-                          <div
-                            className={`ad-mini-fill ${c.rate < 90 ? "ad-mini-fill-warn" : ""}`}
-                            style={{ width: `${c.rate}%` }}
-                          ></div>
-                        </div>
-                      </div>
+                      <span className="ad-rate-value">{c.rate}%</span>
                     )}
                   </td>
                   <td className="ad-right">
-                    <a
-                      className="ad-action"
-                      href={`${ADMIN_URL}academics/schoolclass/${c.id}/change/`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a className="ad-action" href={`${ADMIN_URL}academics/schoolclass/${c.id}/change/`} target="_blank" rel="noreferrer">
                       Manage <ExternalLink size={12} strokeWidth={1.75} />
                     </a>
                   </td>
@@ -557,19 +453,11 @@ function AdminDashboard() {
 
               {visibleClasses.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="ad-no-match">
-                    No classes match your search.
-                  </td>
+                  <td colSpan="6" className="ad-no-match">No classes match your search.</td>
                 </tr>
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="ad-table-foot">
-          {visibleClasses.length === classes.length
-            ? `Showing all ${plural(classes.length, "class", "classes")}`
-            : `Showing ${visibleClasses.length} of ${classes.length} classes`}
         </div>
       </div>
     </DashboardShell>
