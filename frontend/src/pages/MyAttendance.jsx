@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navigate, useOutletContext } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import api from "../api/axios";
-import { formatWeekdayShort, formatMonthDay, plural } from "../utils/format";
+import { formatMonthDay, plural } from "../utils/format";
 import "./MyAttendance.css";
 
 const statusInfo = {
@@ -182,7 +181,7 @@ function MyAttendance() {
           </div>
 
           {/* Month calendar */}
-          <div className="sa-card sa-pad">
+          <div className="sa-card sa-calendar-card">
             <div className="sa-cal-head">
               <h2 className="sa-card-title">{monthLabel}</h2>
 
@@ -193,7 +192,7 @@ function MyAttendance() {
                   onClick={() => changeMonth(-1)}
                   aria-label="Previous month"
                 >
-                  <ChevronLeft size={16} strokeWidth={1.75} />
+                  <img src="/attendance/chevron-left.svg" alt="" />
                 </button>
                 <button
                   type="button"
@@ -202,7 +201,7 @@ function MyAttendance() {
                   disabled={isCurrentMonth}
                   aria-label="Next month"
                 >
-                  <ChevronRight size={16} strokeWidth={1.75} />
+                  <img src="/attendance/chevron-right.svg" alt="" />
                 </button>
               </div>
             </div>
@@ -245,37 +244,22 @@ function MyAttendance() {
               })}
             </div>
 
-            <div className="sa-legend">
-              {statTiles.map((tile) => (
-                <span key={tile.key}>
-                  <span className={`sa-dot ${tile.dot}`}></span> {tile.label}
-                </span>
-              ))}
-              
-            </div>
-          </div>
-
-          {/* Days to note this month */}
-          <div className="sa-card sa-pad">
-            <h2 className="sa-card-title">Days to note in {monthLabel}</h2>
-
-            {monthRecords.length === 0 ? (
-              <p className="sa-none">No attendance was recorded for this month.</p>
-            ) : daysToNote.length === 0 ? (
-              <p className="sa-none">
-                Present on every recorded day this month. Well done.
-              </p>
-            ) : (
+            {daysToNote.length > 0 && (
               <div className="sa-notes">
                 {daysToNote.map((record) => (
                   <div className="sa-note" key={record.id}>
                     <span className="sa-note-date">
-                      {formatWeekdayShort(record.date)}, {formatMonthDay(record.date)}
+                      {(() => {
+                        const [month, day] = formatMonthDay(record.date).split(" ");
+                        return `${day} ${month}`;
+                      })()}
                     </span>
                     <span className={`sa-chip ${statusInfo[record.status].chip}`}>
                       {statusInfo[record.status].label}
                     </span>
-                    <span className="sa-note-reason">{record.reason}</span>
+                    {record.reason && (
+                      <span className="sa-note-reason">{record.reason}</span>
+                    )}
                   </div>
                 ))}
               </div>

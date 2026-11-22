@@ -7,6 +7,13 @@
       "sourceType": "github",
       "skillPath": "skills/emil-design-eng/SKILL.md",
       "computedHash": "e1b377ccde1d32743d1d3f7d8626629deb8055c9114d180c184697928cc66cc6"
+    },
+    "unslop": {
+      "source": "theclaymethod/unslop",
+      "commit": "0f4a07f5ca8bb400b4d4450b00d67c6e4a30b85a",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "f1d4ca019fae9b2ff9ebe53a7a5c576525bf1810ae829d3d8b22146359b76aef"
     }
   }
 }
