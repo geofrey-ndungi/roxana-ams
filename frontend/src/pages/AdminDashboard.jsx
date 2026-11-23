@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Download, TriangleAlert, Search, ExternalLink, Plus, RotateCw } from "lucide-react";
 import api from "../api/axios";
-import { formatDayLong, downloadCsv, plural, listNames } from "../utils/format";
+import { formatDayLong, downloadCsv } from "../utils/format";
 import "./AdminDashboard.css";
 
 // Django's own admin site, where classes and teachers are managed for now.
@@ -58,7 +58,7 @@ function RateTrendChart({ trend, today }) {
 
   const W = 700;
   const H = 220;
-  const pad = { left: 44, right: 24, top: 24, bottom: 46 };
+  const pad = { left: 44, right: 20, top: 24, bottom: 46 };
   const plotW = W - pad.left - pad.right;
   const plotH = H - pad.top - pad.bottom;
 
@@ -74,7 +74,7 @@ function RateTrendChart({ trend, today }) {
   const ticks = [];
   for (let t = low; t <= high; t += step) ticks.push(t);
 
-  const xFor = (i) => pad.left + plotW * (0.05 + 0.9 * (i / (points.length - 1)));
+  const xFor = (i) => pad.left + plotW * (i / (points.length - 1));
   const yFor = (rate) => pad.top + plotH * (1 - (rate - low) / (high - low));
 
   const linePoints = points.map((p, i) => `${xFor(i)},${yFor(p.rate)}`).join(" ");
@@ -185,19 +185,9 @@ function AdminDashboard() {
   const { totals, attendance, trend, classes, attention } = data;
   const missing = attention.missing_attendance;
   const noTeacher = attention.no_teacher;
-  const attentionCount = missing.length + noTeacher.length;
-
   const pct = (n) => (totals.students ? ((n / totals.students) * 100).toFixed(1) : "0.0");
 
-  // The small tag on the attendance card
-  let registerTag;
-  if (attendance.recorded === 0) {
-    registerTag = { text: "Not recorded", cls: "ad-tag-warn" };
-  } else if (attendance.recorded < totals.students) {
-    registerTag = { text: "Partially recorded", cls: "ad-tag-warn" };
-  } else {
-    registerTag = { text: "Fully recorded", cls: "ad-tag-ok" };
-  }
+
 
   const classesPct = attendance.classes_total
     ? ((attendance.classes_recorded / attendance.classes_total) * 100).toFixed(1)
@@ -262,121 +252,32 @@ function AdminDashboard() {
       </div>
 
       <div className="ad-mid">
-        <div className="ad-stack">
-          {/* Today's attendance, whole school */}
-          <div className="ad-card ad-pad">
-            <div className="ad-card-head">
-              <div>
-                <h2 className="ad-card-title">Today's attendance</h2>
-                <span className={`ad-tag ${registerTag.cls}`}>{registerTag.text}</span>
-              </div>
-            </div>
-
-            <div className="ad-attendance-grid">
-              <div className="ad-attn-metric">
-                <span className="ad-metric-label">Present</span>
-                <span className="ad-metric-value">{attendance.counts.PRESENT}</span>
-                <span className="ad-metric-sub">{pct(attendance.counts.PRESENT)}% of students</span>
-              </div>
-              <div className="ad-attn-metric">
-                <span className="ad-metric-label">Absent</span>
-                <span className="ad-metric-value">{attendance.counts.ABSENT}</span>
-                <span className="ad-metric-sub">{pct(attendance.counts.ABSENT)}% of students</span>
-              </div>
-              <div className="ad-attn-metric">
-                <span className="ad-metric-label">Late</span>
-                <span className="ad-metric-value">{attendance.counts.LATE}</span>
-                <span className="ad-metric-sub">{pct(attendance.counts.LATE)}% of students</span>
-              </div>
-              <div className="ad-attn-metric">
-                <span className="ad-metric-label">Excused</span>
-                <span className="ad-metric-value">{attendance.counts.EXCUSED}</span>
-                <span className="ad-metric-sub">{pct(attendance.counts.EXCUSED)}% of students</span>
-              </div>
-            </div>
-
-            <div className="ad-classes-recorded">
-              <div className="ad-classes-recorded-row">
-                <span className="ad-strong">Classes recorded</span>
-                <span className="ad-strong">
-                  {attendance.classes_recorded} / {attendance.classes_total} ({classesPct}%)
-                </span>
-              </div>
-              <div className="ad-progress">
-                <div className="ad-progress-fill" style={{ width: `${classesPct}%` }}></div>
-              </div>
-
-              {missing.length > 0 && (
-                <div className="ad-warning">
-                  <TriangleAlert size={16} strokeWidth={1.75} />
-                  <span>
-                    {plural(missing.length, "class", "classes")} {missing.length === 1 ? "has" : "have"} not recorded
-                    attendance yet ({listNames(missing.map((c) => c.name))})
-                  </span>
-                </div>
-              )}
-            </div>
+        <div className="ad-card ad-attendance-card">
+          <h2 className="ad-card-title">Today's attendance</h2>
+          <div className="ad-present-total">
+            <span className="ad-present-value">{attendance.counts.PRESENT}</span>
+            <span className="ad-present-label">Present</span>
           </div>
-
-          {/* Attendance trend */}
-          <div className="ad-card ad-pad">
-            <div className="ad-card-head">
-              <div>
-                <h2 className="ad-card-title">Attendance trend</h2>
-                <p className="ad-muted">Present rate over the last recorded days</p>
-              </div>
+          <p className="ad-present-sub">{pct(attendance.counts.PRESENT)}% of students</p>
+          <div className="ad-attendance-counts">
+            <div><span>Absent</span><strong>{attendance.counts.ABSENT}</strong></div>
+            <div><span>Late</span><strong>{attendance.counts.LATE}</strong></div>
+            <div><span>Excused</span><strong>{attendance.counts.EXCUSED}</strong></div>
+          </div>
+          <div className="ad-classes-recorded">
+            <div className="ad-classes-recorded-row">
+              <span>Classes recorded</span>
+              <strong>{attendance.classes_recorded} of {attendance.classes_total} · {classesPct}%</strong>
             </div>
-            <RateTrendChart trend={trend} today={data.today} />
+            <div className="ad-progress"><div className="ad-progress-fill" style={{ width: `${classesPct}%` }} /></div>
           </div>
         </div>
-
-        {/* Needs attention */}
-        <div className="ad-card ad-pad">
-          <div className="ad-attn-head">
-            <h2 className="ad-card-title">Needs attention</h2>
-            <span className={`ad-badge ${attentionCount ? "ad-badge-bad" : "ad-badge-ok"}`}>
-              {plural(attentionCount, "item")}
-            </span>
+        <div className="ad-card ad-trend-card">
+          <div className="ad-card-head">
+            <h2 className="ad-card-title">Attendance trend</h2>
+            <span className="ad-month">November</span>
           </div>
-
-          {attentionCount === 0 ? (
-            <div className="ad-clear">
-              <div className="ad-clear-icon"><span className="ad-check">✓</span></div>
-              <div className="ad-clear-title">All caught up</div>
-              <p>Every class has recorded attendance and an assigned class teacher.</p>
-            </div>
-          ) : (
-            <div className="ad-attn-body">
-              {missing.length > 0 && (
-                <div>
-                  <span className="ad-group-title">Classes without attendance today</span>
-                  {missing.map((c) => (
-                    <div className="ad-attn-row" key={c.id}>
-                      <div className="ad-attn-name">{c.name}</div>
-                      <span className="ad-chip ad-chip-warn">Not marked</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {noTeacher.length > 0 && (
-                <div className={missing.length > 0 ? "ad-group-divider" : ""}>
-                  <span className="ad-group-title">Classes without a class teacher</span>
-                  {noTeacher.map((c) => (
-                    <div className="ad-unassigned" key={c.id}>
-                      <div>
-                        <div className="ad-attn-name">{c.name}</div>
-                        <div className="ad-unassigned-sub">{plural(c.student_count, "student")} · Unassigned</div>
-                      </div>
-                      <a className="ad-assign" href={`${ADMIN_URL}academics/schoolclass/${c.id}/change/`} target="_blank" rel="noreferrer">
-                        Assign
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <RateTrendChart trend={trend} today={data.today} />
         </div>
       </div>
 
@@ -405,6 +306,14 @@ function AdminDashboard() {
               <option value="NO_STUDENTS">No students</option>
             </select>
           </div>
+        </div>
+
+        <div className="ad-attention-summary">
+          <TriangleAlert size={18} strokeWidth={1.75} />
+          <span>
+            {missing.length} {missing.length === 1 ? "class needs" : "classes need"} attendance
+            {noTeacher.length > 0 && <> · {noTeacher.map((c) => c.name).join(", ")} needs a class teacher</>}
+          </span>
         </div>
 
         <div className="ad-table-wrap">
