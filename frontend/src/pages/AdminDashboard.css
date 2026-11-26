@@ -20,7 +20,7 @@
   flex-direction: column;
   gap: 24px;
   box-sizing: border-box;
-  font-family: Roboto, Arial, sans-serif;
+  font-family: Inter, sans-serif;
 }
 
 .ad-error { margin-top: 32px; color: #b3261e; }
