@@ -5,5 +5,12 @@
 }
 
 body {
-  font-family: "Century Gothic", Arial, Helvetica, sans-serif;
+  font-family: Inter, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
