@@ -22,20 +22,21 @@ import {
 
 export const studentNav = {
   main: [
-    { label: "Dashboard", icon: LayoutDashboard, soon: true },
-    { label: "My Profile", icon: User, to: "/profile" },
-    { label: "Subjects", icon: BookOpen, to: "/subjects" },
-    { label: "Attendance", icon: ClipboardCheck, to: "/my-attendance" },
-    { label: "Timetable", icon: CalendarDays, to: "/timetable" },
+    { label: "Dashboard", icon: LayoutDashboard, soon: true, section: "Workspace" },
+    { label: "My Profile", icon: User, to: "/profile", section: "School management" },
+    { label: "Subjects", icon: BookOpen, to: "/subjects", section: "School management" },
+    { label: "Attendance", icon: ClipboardCheck, to: "/my-attendance", section: "Daily operations" },
+    { label: "Timetable", icon: CalendarDays, to: "/timetable", section: "Daily operations" },
     {
       label: "Examinations",
       icon: ClipboardCheck,
+      section: "Daily operations",
       children: [
         { label: "Results", icon: ClipboardCheck, to: "/examinations/results" },
         { label: "Report Cards", icon: FileText, to: "/examinations/report-cards" },
       ],
     },
-    { label: "Messages", icon: MessageSquare, soon: true },
+    { label: "Messages", icon: MessageSquare, soon: true, section: "Daily operations" },
   ],
   sectionTitle: "My School",
   school: [
@@ -46,20 +47,21 @@ export const studentNav = {
 
 export const teacherNav = {
   main: [
-    { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
-    { label: "Attendance", icon: ClipboardCheck, to: "/attendance" },
-    { label: "Subjects", icon: BookOpen, to: "/subjects" },
-    { label: "Timetable", icon: CalendarDays, to: "/timetable" },
+    { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard", section: "Workspace" },
+    { label: "Subjects", icon: BookOpen, to: "/subjects", section: "School management" },
+    { label: "Attendance", icon: ClipboardCheck, to: "/attendance", section: "Daily operations" },
+    { label: "Timetable", icon: CalendarDays, to: "/timetable", section: "Daily operations" },
     {
       label: "Examinations",
       icon: ClipboardCheck,
+      section: "Daily operations",
       children: [
         { label: "Results", icon: ClipboardCheck, to: "/examinations/results" },
         { label: "Report Cards", icon: FileText, to: "/examinations/report-cards" },
         { label: "Analytics", icon: ChartNoAxesCombined, to: "/examinations/analytics" },
       ],
     },
-    { label: "Messages", icon: MessageSquare, soon: true },
+    { label: "Messages", icon: MessageSquare, soon: true, section: "Daily operations" },
   ],
   sectionTitle: "",
   school: [],
@@ -67,24 +69,25 @@ export const teacherNav = {
 
 export const adminNav = {
   main: [
-    { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
-    { label: "Attendance", icon: ClipboardCheck, soon: true },
-    { label: "Students", icon: UserGroup, soon: true },
-    { label: "Teachers", icon: Users, soon: true },
-    { label: "Classes", icon: DoorOpen, soon: true },
-    { label: "Subjects", icon: BookOpen, to: "/subjects" },
-    { label: "Academic years", icon: CalendarRange, soon: true },
-    { label: "Timetable", icon: Clock, to: "/timetable" },
+    { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard", section: "Workspace" },
+    { label: "Students", icon: UserGroup, soon: true, section: "School management" },
+    { label: "Teachers", icon: Users, soon: true, section: "School management" },
+    { label: "Classes", icon: DoorOpen, soon: true, section: "School management" },
+    { label: "Subjects", icon: BookOpen, to: "/subjects", section: "School management" },
+    { label: "Academic years", icon: CalendarRange, soon: true, section: "School management" },
+    { label: "Attendance", icon: ClipboardCheck, soon: true, section: "Daily operations" },
+    { label: "Timetable", icon: Clock, to: "/timetable", section: "Daily operations" },
     {
       label: "Examinations",
       icon: ClipboardCheck,
+      section: "Daily operations",
       children: [
         { label: "Results", icon: ClipboardCheck, to: "/examinations/results" },
         { label: "Report Cards", icon: FileText, to: "/examinations/report-cards" },
         { label: "Analytics", icon: ChartNoAxesCombined, to: "/examinations/analytics" },
       ],
     },
-    { label: "Messages", icon: Mail, soon: true },
+    { label: "Messages", icon: Mail, soon: true, section: "Daily operations" },
   ],
   sectionTitle: "",
   school: [],
