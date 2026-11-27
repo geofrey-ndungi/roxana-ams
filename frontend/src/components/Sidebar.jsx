@@ -1,6 +1,14 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import {
+  Bell,
+  Check,
+  Menu,
+  Palette,
+  ShieldCheck,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import logo from "../assets/logo2.jpg";
 import collapseIcon from "../assets/sidebar/collapse.svg";
 import dashboardIcon from "../assets/sidebar/dashboard.svg";
@@ -32,6 +40,13 @@ const iconByLabel = {
   Messages: messagesIcon,
 };
 
+const settingsOptions = [
+  { label: "Notifications", Icon: Bell },
+  { label: "Roles & Permissions", Icon: ShieldCheck },
+  { label: "Grading Configuration", Icon: SlidersHorizontal },
+  { label: "Appearance", Icon: Palette },
+];
+
 function Sidebar({
   user,
   subtitle,
@@ -42,10 +57,38 @@ function Sidebar({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeSetting, setActiveSetting] = useState(null);
+  const settingsRef = useRef(null);
+  const settingsButtonRef = useRef(null);
   const location = useLocation();
   const [examinationsOpen, setExaminationsOpen] = useState(null);
   const isExaminationsOpen =
     examinationsOpen ?? location.pathname.startsWith("/examinations/");
+
+  useEffect(() => {
+    if (!settingsOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!settingsRef.current?.contains(event.target)) {
+        setSettingsOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSettingsOpen(false);
+        settingsButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [settingsOpen]);
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -222,15 +265,48 @@ function Sidebar({
 
         <div className="sidebar-utilities">
           <div className="sidebar-divider" />
-          <button
-            type="button"
-            className="sidebar-settings"
-            disabled
-            title="Settings are not available yet"
-          >
-            <img src={settingsIcon} alt="" aria-hidden="true" />
-            <span className="sidebar-label">Settings</span>
-          </button>
+          <div className="sidebar-settings-wrap" ref={settingsRef}>
+            <button
+              ref={settingsButtonRef}
+              type="button"
+              className={`sidebar-settings ${settingsOpen ? "open" : ""}`}
+              title="Settings"
+              aria-expanded={settingsOpen}
+              aria-controls="sidebar-settings-popover"
+              onClick={() => setSettingsOpen((open) => !open)}
+            >
+              <img src={settingsIcon} alt="" aria-hidden="true" />
+              <span className="sidebar-label">Settings</span>
+            </button>
+            <div
+              id="sidebar-settings-popover"
+              className={`settings-popover ${settingsOpen ? "open" : ""}`}
+              role="group"
+              aria-label="Settings options"
+              aria-hidden={!settingsOpen}
+              inert={!settingsOpen}
+            >
+              {settingsOptions.map(({ label, Icon }) => (
+                <button
+                  key={label}
+                  type="button"
+                  className={`settings-option ${
+                    activeSetting === label ? "selected" : ""
+                  }`}
+                  aria-pressed={activeSetting === label}
+                  onClick={() => {
+                    setActiveSetting(label);
+                    setSettingsOpen(false);
+                  }}
+                >
+                  <span className="settings-option-label">
+                    <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+                    <span>{label}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="sidebar-divider" />
           <div className="sidebar-user">
             <div className="sidebar-user-info">
